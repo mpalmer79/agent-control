@@ -1,6 +1,6 @@
 import { failureFromUnknown, success } from "@/lib/api/responses";
 import { correlationIdFromRequest } from "@/lib/observability/correlation";
-import { listAgents } from "@/server/modules/agents/service";
+import { listAgents } from "@/server/views";
 
 export const dynamic = "force-dynamic";
 

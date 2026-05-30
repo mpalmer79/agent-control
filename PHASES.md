@@ -47,14 +47,30 @@ Status legend: [ ] not started, [~] in progress, [x] complete.
 - [ ] Migration executed against a live database (requires DATABASE_URL)
 - [ ] CI pipeline wired in the repository (Phase 3)
 
-## Phase 3: Control Plane Modules
+## Phase 3: Control Plane Modules (read-oriented)
 
-- [ ] Agent module
-- [ ] Prompt module with immutable versions, diff, rollback
-- [ ] Model module with cost and risk metadata
-- [ ] Deployment module with quality gates
-- [ ] Provider abstraction with simulated adapter
-- [ ] Audit writes and event emission per action
+- [x] Rich UI view models for every module (src/types/views.ts)
+- [x] Read-oriented view service with seed-derived demo fallback
+- [x] Agents module: browsable list and detail
+- [x] Prompts module: list and detail with version history
+- [x] Deployments module: list and detail with approval and evaluation evidence
+- [x] Governance module: approval queue, summary, and risk distribution
+- [x] Evaluations module: results with deployment-blocking indicator
+- [x] Observability module: agent and provider health, cost summary
+- [x] Incidents module: open and resolved incidents
+- [x] Audit explorer: append-only events with correlation IDs
+- [x] Dashboard upgraded to module summaries with links
+- [x] Read-only detail and summary API endpoints
+- [x] Clerk principal groundwork (demo principal, no enforcement yet)
+- [x] Shared module components and demo-mode banner
+- [x] View builder, principal, metric card, and status helper tests
+- [ ] Write workflows (promote, rollback, approve, reject, edit): Phase 4
+- [ ] Database-backed assembly of rich aggregate views: Phase 4
+- [ ] Provider abstraction with simulated adapter: later phase
+
+## Phase 4: Governance and Approvals
+
+- [ ] Risk classification and policy evaluation
 
 ## Phase 4: Governance and Approvals
 

@@ -21,16 +21,22 @@ App Router, TypeScript, Prisma, PostgreSQL, Tailwind CSS, and shadcn/ui.
 
 ## Primary Navigation
 
-The top-level navigation has eight destinations:
+The top-level navigation has the following destinations:
 
 1. Dashboard
 2. Agents
 3. Prompts
 4. Deployments
 5. Governance
-6. Observability
-7. Audit
-8. Settings
+6. Evaluations
+7. Observability
+8. Incidents
+9. Audit
+10. Settings
+
+Evaluations and Incidents were promoted to primary routes in Phase 3 because
+they carry the failed-evaluation and incident steps of the reviewer walkthrough.
+They also remain reachable contextually from agent and observability views.
 
 Navigation is role-aware. Items the current role cannot use are hidden or shown
 in a disabled state with an explanation. Role-to-area mapping:

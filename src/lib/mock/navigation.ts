@@ -4,7 +4,9 @@ import {
   FileText,
   Rocket,
   ShieldCheck,
+  ClipboardCheck,
   Activity,
+  TriangleAlert,
   ScrollText,
   Settings,
 } from "lucide-react";
@@ -45,10 +47,22 @@ export const NAV_ITEMS: NavItem[] = [
     description: "Approvals, policies, and risk controls.",
   },
   {
+    label: "Evaluations",
+    href: ROUTES.evaluations,
+    icon: ClipboardCheck,
+    description: "Functional, safety, and regression results.",
+  },
+  {
     label: "Observability",
     href: ROUTES.observability,
     icon: Activity,
-    description: "Metrics, incidents, and cost trends.",
+    description: "Metrics, provider health, and cost trends.",
+  },
+  {
+    label: "Incidents",
+    href: ROUTES.incidents,
+    icon: TriangleAlert,
+    description: "Open and resolved operational incidents.",
   },
   {
     label: "Audit",

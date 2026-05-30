@@ -1,6 +1,6 @@
 import { failureFromUnknown, success } from "@/lib/api/responses";
 import { correlationIdFromRequest } from "@/lib/observability/correlation";
-import { listPrompts } from "@/server/modules/prompts/service";
+import { listPrompts } from "@/server/views";
 
 export const dynamic = "force-dynamic";
 

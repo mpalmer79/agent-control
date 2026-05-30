@@ -13,6 +13,16 @@ include implementation; tests are written during the implementation phases.
 
 ## Test Layers
 
+### Phase 3 Tests
+
+Phase 3 adds Vitest coverage for the demo view builders (agent list and detail,
+prompt list and detail, deployment list and detail evidence, approval summary
+and risk distribution, evaluation list with deployment-blocking flag and
+summary, incident list, and the metrics summary), the dashboard metric card
+builder, the status and pass/fail helpers, the updated navigation configuration,
+and the Clerk demo principal groundwork. These run without a database against
+the seed-derived view layer.
+
 ### Phase 2 Tests
 
 Phase 2 adds Vitest coverage for the API response helpers, error utilities, the

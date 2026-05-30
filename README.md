@@ -112,14 +112,32 @@ See [MASSIVE_ACTION_PLAN.md](./MASSIVE_ACTION_PLAN.md) for the full plan.
 
 ## Status
 
-Phase 2 complete: core data model and persistence foundation. On top of the
-Phase 1 shell, the repository now has a refined Prisma schema, a repository
-layer, a service layer with a graceful mock fallback, typed API response
-helpers, error and observability utilities (correlation IDs and structured
-logging), a health endpoint, guarded demo status and reset endpoints, and
-read-only foundation API endpoints for the core resources. The shell still
-renders without a database or Clerk keys. Feature behavior arrives in later
-phases.
+Phase 3 complete: read-oriented control plane modules. On top of the Phase 1
+shell and Phase 2 persistence foundation, the repository now has browsable
+Agents, Prompts, Deployments, Governance, Evaluations, Observability, Incidents,
+and Audit modules, with detail pages for agents, prompts, and deployments, and a
+dashboard that links to module summaries. A read-oriented view service produces
+rich UI view models, serving seed-derived demo data with a clear demo banner
+when no database is configured. Clerk principal groundwork is in place without
+enforcing roles yet. Write workflows (promote, rollback, approve, reject) arrive
+in Phase 4. The shell still renders without a database or Clerk keys.
+
+### Module and Foundation API Endpoints
+
+All endpoints return a consistent envelope and a correlation ID. They serve
+database data when DATABASE_URL is configured and seed-derived demo data
+otherwise.
+
+- `GET /api/health`, `GET /api/demo/status`, `POST /api/demo/reset` (guarded).
+- `GET /api/agents`, `/api/agents/[id]`, and `[id]/versions`, `[id]/deployments`, `[id]/incidents`.
+- `GET /api/prompts`, `/api/prompts/[id]`, `/api/prompts/[id]/versions`.
+- `GET /api/models`.
+- `GET /api/deployments`, `/api/deployments/[id]`.
+- `GET /api/approvals`, `/api/approvals/summary`.
+- `GET /api/evaluations`, `/api/evaluations/summary`.
+- `GET /api/incidents`, `/api/incidents/summary`.
+- `GET /api/audit-events`, `/api/audit-events/resource`.
+- `GET /api/metrics/summary`.
 
 ### Foundation API Endpoints
 

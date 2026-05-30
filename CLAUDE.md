@@ -69,6 +69,14 @@ reads arrive in later phases. The shell renders without Clerk keys or a database
 - Shared seed routine: `src/server/modules/demo/seed-runner.ts`, used by both the seed CLI and the guarded demo reset.
 - Every tenant-owned query is scoped by organizationId via `tenantWhere`. The correlation header is `x-correlation-id`.
 
+## Control Plane Modules (from Phase 3)
+
+- UI view models: `src/types/views.ts`. Server components consume these, never raw Prisma models.
+- View service: `src/server/views/index.ts` returns `{ data, source }` via the `load()` fallback. Rich aggregate views are assembled by the seed-derived builders in `src/server/views/demo-views.ts`; database-backed assembly of these aggregates lands with the Phase 4 write workflows. Lean repository reads remain in `src/server/repositories`.
+- Server components read the correlation ID with `correlationIdFromHeaders()` (`src/server/request.ts`) and call the view service. The `DemoModeBanner` shows when seed-derived data is served.
+- Auth principal groundwork: `src/server/auth/principal.ts`. Phase 3 returns a demo principal and does not enforce roles. RBAC enforcement arrives in Phase 4.
+- Phase 3 is read-oriented. Do not add promote, rollback, approve, reject, or edit workflows until Phase 4.
+
 ## Architecture Rules
 
 - Build as a modular monolith first. Do not extract services prematurely.
