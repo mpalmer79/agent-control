@@ -1,11 +1,69 @@
 # Demo Script
 
-A five-minute reviewer walkthrough of Agent Control. It runs entirely on seeded
-data with a simulated runtime (see SEED_DATA_PLAN.md). The goal is to show
-operational thinking: control, visibility, governance, audit, and rollback.
+A reviewer walkthrough of Agent Control. It runs entirely on seeded data with a
+simulated runtime (see SEED_DATA_PLAN.md). The goal is to show operational
+thinking: control, visibility, governance, audit, and rollback. There are no
+live AI provider calls and no real customer data.
 
-Total time: about five minutes. Each step lists what to show and the point it
-makes.
+The in-app version of this script lives at `/walkthrough` (Start here in the
+sidebar). This document gives three review paths and the talking points.
+
+## Five-Minute Path
+
+Follow the evidence spine, correlation ID `corr_fraud_v3`:
+
+1. Dashboard: operational health score, attention banner, top risk agent.
+2. Fraud Triage Agent (`/agents/fraud`): high risk, elevated error rate, v3 active.
+3. Deployment detail (`/deployments/fraud-v3-prod`): failed safety evaluation, v2 rollback target preserved.
+4. Incident detail (`/incidents/fraud-cost`): triggering signal, related metrics, recommended action.
+5. Trace (`/traces/corr_fraud_v3`): one timeline joining deployment, evaluation, cost, incident, audit, and outbox.
+6. Governance (`/governance`): a separate high-risk change pending approval, fail-closed.
+
+Talking point: a regression shipped, evaluations and metrics caught it, an
+incident was raised, governance enforced review on a separate change, and the
+operator can roll back safely, all provable by one correlation ID.
+
+## Ten-Minute Deeper Path
+
+Add to the five-minute path:
+
+- Observability (`/observability`): agent and provider health, cost summary with
+  budget signals, evaluation trends by category, outbox summary.
+- Costs (`/observability/costs`): estimated spend by agent, provider, and
+  environment, with the budget warning on the Fraud Triage Agent.
+- Outbox (`/observability/outbox`): pending events written transactionally with
+  workflow state changes; no external publisher yet.
+- Audit (`/audit`): append-only events; note the disabled filter preview and the
+  trace links.
+- Approval detail (`/governance/approvals/...`): approve and reject actions with
+  the policy decision and immutable evidence (simulated without a database).
+
+## Technical Inspection Path
+
+For engineers reviewing the code:
+
+- Layering and fallback: `src/server/data-source.ts` (`load()`), services in
+  `src/server/modules`, repositories in `src/server/repositories`.
+- Transactional workflows: `src/server/modules/deployments/service.ts` and
+  `governance/service.ts` (`prisma.$transaction` with state change, audit, and
+  outbox).
+- Pure logic: `src/server/modules/governance/policy-engine.ts` and
+  `src/server/modules/incidents/rules.ts`.
+- Evidence: `src/server/views/observability-views.ts` (`buildTraceDetail`).
+- Tests: `src/test` (run `npm run test`).
+
+See REVIEWER_GUIDE.md and ARCHITECTURE_MAP.md.
+
+## Limitations to Disclose Honestly
+
+- The runtime is simulated; telemetry, costs, and provider health are demo-seeded.
+- Without a database, workflow mutations return labeled simulated results.
+- Real telemetry ingestion, an outbox publisher, persisted incident creation from
+  signals, and Clerk-backed role mapping are future work.
+
+## Scripted Step-by-Step (about five minutes)
+
+Each step below lists what to show and the point it makes.
 
 ## Operational Evidence Walkthrough (from Phase 5)
 

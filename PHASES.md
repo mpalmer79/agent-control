@@ -116,8 +116,24 @@ Status legend: [ ] not started, [~] in progress, [x] complete.
 - [ ] Persisted incident creation from signals: future hardening pass
 - [ ] Outbox publisher to external systems: future phase
 
-- [ ] Complete seeded demo environment
-- [ ] Verified end-to-end demo flow
-- [ ] MVP deployment (Vercel, Railway, PostgreSQL)
-- [ ] Accessibility pass on primary screens
-- [ ] Final documentation refresh
+## Phase 6: Demo Polish and Deployment
+
+- [x] Coherent seeded demo spine across all modules (corr_fraud_v3)
+- [x] In-app guided reviewer walkthrough at /walkthrough, linked from nav, dashboard, landing, and not-found
+- [x] Portfolio-ready landing page with demo story and safety notice
+- [x] Real settings page (environment, demo mode, database and Clerk status, endpoints)
+- [x] Navigation polish (Start here entry; all demo routes reachable, no dead links)
+- [x] Accessibility pass (semantic headings, link text, labels, focus, contrast)
+- [x] Responsive pass on core pages
+- [x] Deployment readiness: builds without DATABASE_URL, Clerk, or provider keys
+- [x] REVIEWER_GUIDE.md and ARCHITECTURE_MAP.md added
+- [x] DEMO_SCRIPT.md upgraded with 5-minute, 10-minute, and technical paths
+- [x] Final documentation refresh and validation
+- [x] Final security and dash scan
+
+## Final MVP Status
+
+- MVP reviewable: yes. The story is navigable end to end without author guidance.
+- Deployment ready: yes for Vercel plus optional Railway PostgreSQL; the shell runs without a database or Clerk.
+- Known limitations: simulated runtime, demo-seeded telemetry, no live provider calls.
+- Future work: real telemetry ingestion, an outbox publisher, persisted incident creation from signals, and Clerk-backed role mapping.

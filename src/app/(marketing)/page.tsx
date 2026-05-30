@@ -43,12 +43,17 @@ export default function MarketingPage() {
           <Boxes className="h-6 w-6 text-primary" aria-hidden="true" />
           <span className="font-semibold">{PRODUCT.name}</span>
         </div>
-        <Button asChild size="sm">
-          <Link href={ROUTES.dashboard}>
-            Open control plane
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link href={ROUTES.walkthrough}>Start here</Link>
+          </Button>
+          <Button asChild size="sm">
+            <Link href={ROUTES.dashboard}>
+              Open control plane
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-12 px-6 py-16">
@@ -66,10 +71,13 @@ export default function MarketingPage() {
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
             <Button asChild>
-              <Link href={ROUTES.dashboard}>
-                View the dashboard
+              <Link href={ROUTES.walkthrough}>
+                Start the walkthrough
                 <ArrowRight className="h-4 w-4" />
               </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href={ROUTES.dashboard}>View the dashboard</Link>
             </Button>
           </div>
         </section>
@@ -87,10 +95,34 @@ export default function MarketingPage() {
             </Card>
           ))}
         </section>
+
+        <section className="space-y-3">
+          <h2 className="text-2xl font-semibold tracking-tight">
+            The demo story
+          </h2>
+          <p className="max-w-2xl text-muted-foreground">
+            A regression ships to production, evaluations and metrics catch it,
+            an incident is raised, governance enforces review on a separate
+            high-risk change, and the operator rolls back safely. One
+            correlation ID joins the deployment, evaluation, cost spike,
+            incident, audit events, and outbox events into a single timeline.
+          </p>
+        </section>
+
+        <section className="rounded-lg border bg-muted/40 p-6">
+          <h2 className="text-lg font-semibold">Safety and simulation</h2>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            This is a portfolio MVP. The runtime is simulated and all telemetry
+            is demo-seeded. There are no live AI provider calls, no real
+            customer data, and no secrets. The control plane renders without a
+            database or authentication keys; configure them to enable
+            persistence and login.
+          </p>
+        </section>
       </main>
 
       <footer className="border-t px-6 py-6 text-sm text-muted-foreground">
-        {PRODUCT.name}. Repository: {PRODUCT.repository}.
+        {PRODUCT.name}. {PRODUCT.tagline}. Repository: {PRODUCT.repository}.
       </footer>
     </div>
   );

@@ -1,5 +1,6 @@
 import {
   LayoutDashboard,
+  Compass,
   Bot,
   FileText,
   Rocket,
@@ -22,6 +23,12 @@ export const NAV_ITEMS: NavItem[] = [
     href: ROUTES.dashboard,
     icon: LayoutDashboard,
     description: "Operational overview across agents, cost, and risk.",
+  },
+  {
+    label: "Start here",
+    href: ROUTES.walkthrough,
+    icon: Compass,
+    description: "Guided reviewer walkthrough of the evidence story.",
   },
   {
     label: "Agents",
