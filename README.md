@@ -53,6 +53,18 @@ Key constraints: modular monolith first, PostgreSQL as source of truth,
 event-driven with the outbox pattern, provider abstraction, simulated runtime
 for the MVP, and audit-first design.
 
+## Technology Stack (MVP)
+
+The MVP stack is locked (see [DECISIONS.md](./DECISIONS.md)):
+
+- Next.js App Router
+- TypeScript
+- Prisma
+- PostgreSQL
+- Tailwind CSS
+- shadcn/ui
+- Clerk for authentication
+
 ## Documentation Map
 
 | Document | Purpose |
@@ -67,6 +79,7 @@ for the MVP, and audit-first design.
 | [DATA_MODEL.md](./DATA_MODEL.md) | Domain entities, relationships, and ownership. |
 | [EVENT_CONTRACTS.md](./EVENT_CONTRACTS.md) | Event naming, envelope, and examples. |
 | [API_CONTRACTS.md](./API_CONTRACTS.md) | Planned resources, routes, and error model. |
+| [UI_ARCHITECTURE.md](./UI_ARCHITECTURE.md) | Navigation, information architecture, and core user flows. |
 | [GOVERNANCE.md](./GOVERNANCE.md) | Risk levels, approvals, and fail-closed behavior. |
 | [AUDIT_MODEL.md](./AUDIT_MODEL.md) | Audit events, retention, and immutability. |
 | [OBSERVABILITY.md](./OBSERVABILITY.md) | Logs, metrics, traces, and incidents. |

@@ -11,12 +11,16 @@ simulated runtime, so there is no dependency on live AI providers.
 
 | Component | Platform |
 | --- | --- |
-| Frontend | Vercel |
-| Backend API | Railway |
+| Application (Next.js App Router) | Vercel |
 | Database | Railway PostgreSQL |
+| Authentication | Clerk |
 | Cache (optional) | Railway Redis |
 | Background workers | Railway |
 | Object storage (optional) | S3-compatible storage |
+
+The MVP is a single Next.js application (App Router) with TypeScript and Prisma.
+The UI and API routes deploy together to Vercel; PostgreSQL is hosted on Railway;
+authentication is provided by Clerk.
 
 ### MVP Characteristics
 
@@ -29,11 +33,12 @@ simulated runtime, so there is no dependency on live AI providers.
 ### MVP Deployment Steps (high level)
 
 1. Provision PostgreSQL on Railway and capture the connection string as a platform variable.
-2. Deploy the backend API and background workers to Railway with environment variables set from the .env.example contract.
-3. Run database migrations.
+2. Configure a Clerk application and set the Clerk environment variables from the .env.example contract.
+3. Run Prisma migrations against the database.
 4. Run the seed harness to load demo data.
-5. Deploy the frontend to Vercel, pointing it at the backend API base URL.
-6. Verify the DEMO_SCRIPT.md walkthrough end to end.
+5. Deploy the Next.js application (UI and API routes) to Vercel with environment variables set from the .env.example contract.
+6. Provision background workers on Railway for evaluations, exports, and cost aggregation if needed.
+7. Verify the DEMO_SCRIPT.md walkthrough end to end.
 
 ### Environments
 

@@ -30,13 +30,15 @@ its exit criteria.
 - No secrets and no implementation code.
 - Self-review pass recorded with a gap list for human decisions.
 
-## Phase 1: Project Shell and Infrastructure
+## Phase 1: Repository Shell and Infrastructure
 
 ### Deliverables
 
-- Modular monolith project skeleton (frontend app directories and server module directories per SYSTEM_DESIGN.md section 20.1).
+- Modular monolith project skeleton on the locked stack: Next.js App Router, TypeScript, Prisma, PostgreSQL, Tailwind CSS, and shadcn/ui.
+- App Router route groups and server module directories per UI_ARCHITECTURE.md and SYSTEM_DESIGN.md section 20.1.
+- Clerk authentication wired with organization and role resolution.
 - Local development setup: PostgreSQL, optional Redis, environment configuration from .env.example.
-- API gateway concerns: correlation ID injection, request validation scaffold, structured JSON logging.
+- Request concerns: correlation ID injection, request validation scaffold, structured JSON logging.
 - CI pipeline: lint, type check, unit test, and build.
 - Health check endpoint and baseline observability wiring.
 
@@ -48,10 +50,11 @@ its exit criteria.
 
 ### Exit Criteria
 
-- Application builds and runs locally against PostgreSQL.
+- Next.js application builds and runs locally against PostgreSQL via Prisma.
+- Clerk authentication resolves organization and role.
 - CI passes on the default branch.
 - Correlation IDs flow through logs.
-- Module boundaries match the documented structure.
+- Module boundaries match the documented structure in UI_ARCHITECTURE.md and SYSTEM_DESIGN.md.
 
 ## Phase 2: Core Data Model
 

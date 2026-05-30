@@ -15,11 +15,12 @@ Status legend: [ ] not started, [~] in progress, [x] complete.
 - [x] No em dashes, no secrets, no implementation code
 - [x] Self-review pass and gap list
 
-## Phase 1: Project Shell and Infrastructure
+## Phase 1: Repository Shell and Infrastructure
 
-- [ ] Modular monolith skeleton (app and server modules)
+- [ ] Next.js App Router skeleton with TypeScript, Prisma, Tailwind, shadcn/ui
+- [ ] Clerk authentication with organization and role resolution
 - [ ] Local PostgreSQL and environment config
-- [ ] API gateway concerns: correlation IDs, validation, structured logs
+- [ ] Request concerns: correlation IDs, validation, structured logs
 - [ ] CI pipeline: lint, type check, test, build
 - [ ] Health check endpoint
 
