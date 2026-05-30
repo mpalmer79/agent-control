@@ -1,14 +1,16 @@
 # Architecture.md
 
-# AI Deployment Command Center
+# Agent Control
+
+Agent Control began as the AI Deployment Command Center concept, but Agent Control is the public product name.
 
 ## Executive Summary
 
-AI Deployment Command Center is an enterprise platform for managing, governing, monitoring, and operating production AI systems at scale.
+Agent Control is an enterprise platform for managing, governing, monitoring, and operating production AI systems at scale.
 
 The platform provides a centralized control plane for AI agents, workflows, prompts, models, deployments, evaluations, human approvals, observability, and operational risk management.
 
-Unlike a traditional chatbot application, the Command Center focuses on the operational lifecycle of AI systems. It enables engineering teams, product leaders, compliance stakeholders, and executives to understand how AI systems behave in production and intervene when necessary.
+Unlike a traditional chatbot application, Agent Control focuses on the operational lifecycle of AI systems. It enables engineering teams, product leaders, compliance stakeholders, and executives to understand how AI systems behave in production and intervene when necessary.
 
 The system is designed around five core principles:
 
@@ -33,7 +35,7 @@ Most teams lack visibility into:
 
 Current tools typically focus on experimentation rather than operational governance.
 
-The AI Deployment Command Center serves as the operational control layer for enterprise AI.
+Agent Control serves as the operational control layer for enterprise AI.
 
 ## Goals
 
@@ -419,7 +421,7 @@ Trend analysis should be supported so teams can identify whether an agent is imp
 
 ## Runtime Execution Model
 
-The Command Center should distinguish between management control and runtime execution.
+Agent Control should distinguish between management control and runtime execution.
 
 The platform owns:
 
@@ -609,18 +611,24 @@ Object storage can be used for:
 - Recharts
 - shadcn/ui
 
-### Backend
+### Backend (MVP)
+
+The MVP backend is the Next.js App Router application with TypeScript and Prisma. There is no separate Python backend for the MVP.
+
+- Next.js App Router (API routes and server components)
+- TypeScript
+- Prisma
+- PostgreSQL
+- Clerk for authentication
+
+### Backend (Future Service Extraction Option)
+
+A separate backend service can be extracted later if scale or team boundaries justify it. This is a future option only, not the MVP path.
 
 - FastAPI
 - Python
 - Pydantic
 - SQLAlchemy
-
-Alternative MVP option:
-
-- Next.js API routes
-- TypeScript
-- Prisma
 
 ### Database
 
@@ -811,4 +819,4 @@ The first version should prove visibility, control, approval, and rollback befor
 
 AI systems should be operated with the same rigor, observability, governance, and reliability standards expected of any other production-critical software platform.
 
-The AI Deployment Command Center exists to make production AI visible, governable, measurable, and reversible.
+Agent Control exists to make production AI visible, governable, measurable, and reversible.
