@@ -1,8 +1,11 @@
 import { prisma } from "@/lib/prisma/client";
 import { clampLimit, tenantWhere } from "./shared";
+import { db, type Db } from "./types";
 
 // Audit events are append-only. This repository exposes reads and a guarded
-// create. There is no update or delete by design.
+// create. There is no update or delete by design. The create accepts an
+// optional transaction client so it can be written atomically with a workflow
+// state change.
 export const auditRepository = {
   list(organizationId: string, limit?: number) {
     return prisma.auditEvent.findMany({
@@ -22,17 +25,20 @@ export const auditRepository = {
     });
   },
 
-  create(input: {
-    organizationId: string;
-    actorUserId?: string | null;
-    action: string;
-    resourceType: string;
-    resourceId: string;
-    correlationId: string;
-    previousStateJson?: object | null;
-    newStateJson?: object | null;
-  }) {
-    return prisma.auditEvent.create({
+  create(
+    input: {
+      organizationId: string;
+      actorUserId?: string | null;
+      action: string;
+      resourceType: string;
+      resourceId: string;
+      correlationId: string;
+      previousStateJson?: object | null;
+      newStateJson?: object | null;
+    },
+    tx?: Db,
+  ) {
+    return db(tx).auditEvent.create({
       data: {
         organizationId: input.organizationId,
         actorUserId: input.actorUserId ?? null,

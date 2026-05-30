@@ -79,8 +79,10 @@ reads arrive in later phases. The shell renders without Clerk keys or a database
 ## Governance Workflows (from Phase 4)
 
 - Roles and permissions: `src/server/auth/principal.ts` (ROLE_PERMISSIONS) and `src/server/auth/permissions.ts`. Enforce permissions in the service layer with `requirePermission`, never only in the UI.
-- Policy engine: `src/server/modules/governance/policy-engine.ts` is pure (facts in, decision out). Facts are gathered in `src/server/workflows/facts.ts`.
-- Workflow services: approvals in `src/server/modules/governance/service.ts`, deployments in `src/server/modules/deployments/service.ts`. They resolve the principal, enforce permission, evaluate policy, and either block (no mutation), route to pending approval, persist with audit and outbox evidence, or return a simulated result when no database is configured.
+- Policy engine: `src/server/modules/governance/policy-engine.ts` is pure (facts in, decision out). Facts are gathered from the seed scenario in `src/server/workflows/facts.ts` and, for the persistence path, from the repositories in `src/server/workflows/fact-source.ts`. Persisted mutations use repository-backed facts; demo mode uses seed facts.
+- Workflow services: approvals in `src/server/modules/governance/service.ts`, deployments in `src/server/modules/deployments/service.ts`. They resolve the principal, enforce permission, evaluate policy, and either block (no mutation), route to pending approval, persist, or return a simulated result when no database is configured.
+- Persistence is transactional: each successful persisted workflow writes its business state change, one append-only audit event, and one pending outbox event in a single `prisma.$transaction`. Repository mutation helpers accept an optional transaction client (`src/server/repositories/types.ts`, the `Db` type and `db(tx)` helper).
+- Promotion supersedes prior active deployments for the same agent and environment; rollback activates the target and marks the rolled-back-from deployment ROLLED_BACK (preserved, never deleted).
 - Workflow result types: `src/types/workflows.ts`. API routes return these in the standard envelope and use 422 for blocked actions.
 - UI: client panels in `src/components/workflows` drive the mutation endpoints and render success, blocked, pending, simulated, and error states.
 - Blocked actions never mutate state and never create outbox events. Simulated results never claim persisted evidence IDs.

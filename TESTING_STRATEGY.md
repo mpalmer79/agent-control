@@ -24,6 +24,16 @@ approval, and rollback allowed), the workflow request validation schemas, and
 the workflow result alert component (success, simulated, and blocked rendering).
 These run without a database against the simulated workflow path.
 
+The Phase 4 hardening pass adds repository tests that verify mutation helpers
+shape their queries correctly using a fake transaction client: approval
+decisions update only pending, organization-scoped rows; supersede targets only
+the same agent and environment and excludes the promoted deployment; rollback
+marks the prior deployment ROLLED_BACK while preserving it; and promotion marks
+a deployment active with an approver and timestamp. These assert the
+transactional and tenant-scoping guarantees without requiring a live database.
+Full database integration tests (asserting committed rows and rollback on a
+failed write) require a test database and are wired when one is available.
+
 ### Phase 3 Tests
 
 Phase 3 adds Vitest coverage for the demo view builders (agent list and detail,

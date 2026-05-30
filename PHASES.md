@@ -81,8 +81,21 @@ Status legend: [ ] not started, [~] in progress, [x] complete.
 - [x] Guarded mutation API endpoints with zod validation
 - [x] Workflow UI panels, confirmation dialog, and result states
 - [x] Permission, policy, workflow, validation, and UI tests
+
+## Phase 4 Hardening: Workflow Persistence Integrity
+
+- [x] Shared Prisma transaction client type so repositories run in a transaction
+- [x] Approval decisions: decision, audit, and outbox written in one transaction
+- [x] Promotion: state change, audit, and outbox written in one transaction
+- [x] Rollback: state change, audit, and outbox written in one transaction
+- [x] Persisted promotion marks the target active and supersedes prior active deployments for the same agent and environment
+- [x] Persisted rollback activates the target and marks the rolled-back-from deployment ROLLED_BACK, preserving the record
+- [x] Concurrent or already-decided approvals abort the transaction with no evidence
+- [x] Database-backed policy facts when persistence is enabled; seed facts in demo mode
+- [x] Repository mutation helpers tenant-scoped and transaction-aware
+- [x] Repository scoping and transaction-shape tests
 - [ ] Clerk-backed role mapping (currently demo principal): future hardening
-- [ ] Database-backed assembly of rich aggregate views: future phase
+- [ ] Database-backed assembly of rich aggregate read views: future phase
 - [ ] Outbox publisher process: Phase 5 onward
 
 ## Phase 5: Observability and Incidents

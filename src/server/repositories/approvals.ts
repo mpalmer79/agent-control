@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma/client";
 import { clampLimit, tenantWhere } from "./shared";
+import { db, type Db } from "./types";
 
 export const approvalRepository = {
   list(organizationId: string, limit?: number) {
@@ -11,10 +12,16 @@ export const approvalRepository = {
     });
   },
 
-  findById(organizationId: string, id: string) {
-    return prisma.approval.findFirst({
+  findById(organizationId: string, id: string, tx?: Db) {
+    return db(tx).approval.findFirst({
       where: tenantWhere(organizationId, { id }),
       include: { requester: true, assignee: true },
+    });
+  },
+
+  findPendingById(organizationId: string, id: string, tx?: Db) {
+    return db(tx).approval.findFirst({
+      where: { id, organizationId, status: "PENDING" },
     });
   },
 
@@ -32,14 +39,17 @@ export const approvalRepository = {
   },
 
   // Record a decision on a pending approval. The where clause includes the
-  // PENDING status so a concurrent second decision cannot overwrite the first.
+  // PENDING status so a concurrent second decision cannot overwrite the first;
+  // the returned count is 0 when the request was already decided. Accepts a
+  // transaction client so the decision is atomic with audit and outbox writes.
   recordDecision(
     organizationId: string,
     id: string,
     status: "APPROVED" | "REJECTED",
     decisionReason: string | null,
+    tx?: Db,
   ) {
-    return prisma.approval.updateMany({
+    return db(tx).approval.updateMany({
       where: { id, organizationId, status: "PENDING" },
       data: { status, decisionReason, decidedAt: new Date() },
     });

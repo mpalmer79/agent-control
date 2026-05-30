@@ -2,6 +2,7 @@ import { getDemoContext } from "@/server/context";
 import { load } from "@/server/data-source";
 import { logger } from "@/lib/observability/logger";
 import { NotFoundError, toAppError } from "@/lib/errors";
+import { prisma } from "@/lib/prisma/client";
 import { mapApproval } from "@/server/mappers";
 import { mockApprovals } from "@/server/mock-source";
 import {
@@ -13,10 +14,11 @@ import { resolveOrganizationId } from "@/server/resolve-org";
 import { requirePermission } from "@/server/auth/permissions";
 import { getPrincipal } from "@/server/auth/principal";
 import { evaluateApprovalDecision } from "@/server/modules/governance/policy-engine";
+import { findSeedApproval } from "@/server/workflows/facts";
 import {
-  approvalDecisionFacts,
-  findSeedApproval,
-} from "@/server/workflows/facts";
+  dbApprovalDecisionFacts,
+  seedApprovalDecisionFacts,
+} from "@/server/workflows/fact-source";
 import {
   blockedResult,
   buildResult,
@@ -61,17 +63,31 @@ async function decideApproval(
   requirePermission(principal, "approvals:decide");
 
   const action = isRejection ? "approval.reject" : "approval.approve";
-  const facts = approvalDecisionFacts(
-    input.approvalId,
-    isRejection,
-    input.reason,
-  );
+  const persistence = isPersistenceEnabled();
+
+  // Resolve the organization once; the database fact gathering and the
+  // transaction both need it.
+  const organizationId = persistence
+    ? await resolveOrganizationId(principal.organizationSlug)
+    : null;
+
+  // Database mode gathers facts from the repositories so the decision is never
+  // based on stale seed data. Demo mode uses seed-derived facts.
+  const facts =
+    persistence && organizationId
+      ? await dbApprovalDecisionFacts(
+          organizationId,
+          input.approvalId,
+          isRejection,
+          input.reason,
+        )
+      : seedApprovalDecisionFacts(input.approvalId, isRejection, input.reason);
   const decision = evaluateApprovalDecision(facts);
 
   const seed = findSeedApproval(input.approvalId);
   const affectedResource = seed
     ? { type: "approval", id: seed.key, label: seed.resourceLabel }
-    : undefined;
+    : { type: "approval", id: input.approvalId, label: "Approval request" };
 
   if (!decision.allowed) {
     return blockedResult(action, correlationId, decision, affectedResource);
@@ -82,7 +98,7 @@ async function decideApproval(
     ? "Approval request rejected."
     : "Approval request approved.";
 
-  if (!isPersistenceEnabled()) {
+  if (!persistence || !organizationId) {
     logger.info("approval decision simulated", { correlationId, action });
     return buildResult({
       action,
@@ -95,9 +111,8 @@ async function decideApproval(
   }
 
   try {
-    const organizationId = await resolveOrganizationId(
-      principal.organizationSlug,
-    );
+    // Verify existence in organization scope before the transaction so a
+    // missing approval returns a clear 404 rather than a transaction error.
     const existing = await approvalRepository.findById(
       organizationId,
       input.approvalId,
@@ -106,44 +121,53 @@ async function decideApproval(
       throw new NotFoundError("Approval request not found");
     }
 
-    const updated = await approvalRepository.recordDecision(
-      organizationId,
-      input.approvalId,
-      status,
-      input.reason ?? null,
-    );
-    if (updated.count === 0) {
-      // Another decision won the race; treat as already decided.
-      return blockedResult(
-        action,
-        correlationId,
-        evaluateApprovalDecision({ ...facts, isPending: false }),
-        affectedResource,
+    // The decision, audit event, and outbox event are written in one
+    // transaction. If any write fails, the decision rolls back. A concurrent
+    // decision is detected by the zero-count update inside the transaction and
+    // surfaced as a conflict that aborts the transaction without evidence.
+    const evidence = await prisma.$transaction(async (tx) => {
+      const updated = await approvalRepository.recordDecision(
+        organizationId,
+        input.approvalId,
+        status,
+        input.reason ?? null,
+        tx,
       );
-    }
+      if (updated.count === 0) {
+        throw new AlreadyDecidedError();
+      }
 
-    const audit = await auditRepository.create({
-      organizationId,
-      actorUserId: null,
-      action: isRejection ? "approval.rejected" : "approval.approved",
-      resourceType: "approval",
-      resourceId: input.approvalId,
-      correlationId,
-      previousStateJson: { status: "PENDING" },
-      newStateJson: { status, decisionReason: input.reason ?? null },
-    });
+      const audit = await auditRepository.create(
+        {
+          organizationId,
+          actorUserId: null,
+          action: isRejection ? "approval.rejected" : "approval.approved",
+          resourceType: "approval",
+          resourceId: input.approvalId,
+          correlationId,
+          previousStateJson: { status: "PENDING" },
+          newStateJson: { status, decisionReason: input.reason ?? null },
+        },
+        tx,
+      );
 
-    const outbox = await outboxRepository.create({
-      organizationId,
-      eventType: isRejection ? "ApprovalRejected" : "ApprovalApproved",
-      aggregateType: "approval",
-      aggregateId: input.approvalId,
-      payloadJson: {
-        approval_id: input.approvalId,
-        status: status.toLowerCase(),
-        decision_reason: input.reason ?? null,
-      },
-      correlationId,
+      const outbox = await outboxRepository.create(
+        {
+          organizationId,
+          eventType: isRejection ? "ApprovalRejected" : "ApprovalApproved",
+          aggregateType: "approval",
+          aggregateId: input.approvalId,
+          payloadJson: {
+            approval_id: input.approvalId,
+            status: status.toLowerCase(),
+            decision_reason: input.reason ?? null,
+          },
+          correlationId,
+        },
+        tx,
+      );
+
+      return { auditId: audit.id, outboxId: outbox.id };
     });
 
     return buildResult({
@@ -153,13 +177,27 @@ async function decideApproval(
       correlationId,
       policyDecision: decision,
       affectedResource,
-      auditEventId: audit.id,
-      outboxEventId: outbox.id,
+      auditEventId: evidence.auditId,
+      outboxEventId: evidence.outboxId,
     });
   } catch (error) {
+    if (error instanceof AlreadyDecidedError) {
+      // Another decision won the race. Nothing was persisted in this
+      // transaction; return a blocked result.
+      return blockedResult(
+        action,
+        correlationId,
+        evaluateApprovalDecision({ ...facts, isPending: false }),
+        affectedResource,
+      );
+    }
     throw toAppError(error);
   }
 }
+
+// Internal signal used to abort the decision transaction when a concurrent
+// decision has already been recorded.
+class AlreadyDecidedError extends Error {}
 
 export function approveApproval(
   correlationId: string,
