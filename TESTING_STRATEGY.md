@@ -1,0 +1,93 @@
+# Testing Strategy
+
+The testing approach for Agent Control across unit, integration, contract, demo,
+and accessibility layers. This document defines what to test and why. It does not
+include implementation; tests are written during the implementation phases.
+
+## Objectives
+
+- Protect the platform invariants: immutability, tenant isolation, audit
+  completeness, deployment gates, and fail-closed governance.
+- Keep the demo reliable end to end.
+- Catch contract drift in events and APIs before consumers break.
+
+## Test Layers
+
+### Unit Testing
+
+Scope: pure business rules in isolation.
+
+Priority cases:
+
+- Prompt version immutability: an edit creates a new version and never mutates an existing one.
+- Deployment gate logic: each gate (approved prompt, approved and enabled model, passing evaluations, no critical policy violations, required approval) blocks correctly.
+- Risk classification: effective risk is the highest applicable input.
+- Approval rules: a requester cannot approve their own request; only Reviewer and Administrator can decide.
+- Fail-closed behavior: high-risk actions are blocked when a governance check cannot complete.
+- Cost estimation math from token counts and model metadata.
+
+### Integration Testing
+
+Scope: modules working together with a real PostgreSQL instance.
+
+Priority cases:
+
+- Create agent writes the agent, an audit event, and an outbox event in one transaction.
+- Prompt update creates a new version, an audit event, and emits PromptVersionCreated.
+- Production deployment flow enforces gates and creates approval requests for medium and high risk.
+- Approval decision recording updates the deployment path and is immutable.
+- Rollback creates a new deployment, marks the old one inactive, preserves the failed record, and writes audit and event records.
+- Outbox publisher reads unpublished rows, publishes, and marks them published; at-least-once delivery is handled idempotently.
+- Tenant isolation: queries never return cross-organization data.
+
+### Contract Testing
+
+Scope: stable shapes for events and APIs.
+
+Priority cases:
+
+- Event envelope conforms to EVENT_CONTRACTS.md (required fields, types, naming).
+- Each registered event payload matches its documented shape.
+- API request and response bodies match API_CONTRACTS.md, including the error model and the deployment gate result structure.
+- Schema version changes are detected and intentional.
+
+### Demo Validation
+
+Scope: the full DEMO_SCRIPT.md walkthrough against seeded data.
+
+Priority cases:
+
+- Seed harness loads a reproducible environment.
+- Each demo step renders the expected data (problem agent, failed evaluation, pending approval, incident, rollback target).
+- The live approval and rollback steps produce fresh audit and event records.
+- The walkthrough completes without errors in the deployed MVP.
+
+### Accessibility Validation
+
+Scope: primary screens in the web control plane.
+
+Priority cases:
+
+- Keyboard navigation reaches all interactive controls.
+- Color is not the only signal for status and risk; text or icons accompany it.
+- Sufficient color contrast on key screens.
+- Form fields and controls have accessible labels.
+- Automated accessibility checks run in CI for primary screens, with manual spot checks for critical flows (approval and rollback).
+
+## Test Data
+
+- Tests use isolated, ephemeral data; they never depend on a shared live environment.
+- No real secrets or customer data in fixtures.
+- The simulated runtime provides deterministic telemetry for repeatable assertions.
+
+## Continuous Integration
+
+- CI runs lint, type check, unit, integration, and contract tests, plus the build.
+- Accessibility checks run on primary screens.
+- A phase is not complete until its exit criteria, including the relevant tests, pass.
+
+## Coverage Philosophy
+
+Prioritize coverage of invariants and money paths (deployment gates, governance,
+audit, tenancy) over raw percentage targets. A high line-coverage number that
+misses an invariant is not acceptable.
