@@ -13,6 +13,16 @@ include implementation; tests are written during the implementation phases.
 
 ## Test Layers
 
+### Phase 2 Tests
+
+Phase 2 adds Vitest coverage for the API response helpers, error utilities, the
+correlation ID utility, the structured logger (including redaction), repository
+shared helpers (limit clamping and tenant scoping), the seed-derived mock data
+source, and seed data integrity (relationships, valid status values, and a check
+that no secret-like values are present). Repository database behavior is tested
+through the input-shaping helpers; full database integration tests arrive when a
+test database is wired in a later phase.
+
 ### Tooling (from Phase 1)
 
 The configured test stack is Vitest with React Testing Library and

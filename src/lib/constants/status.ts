@@ -50,14 +50,15 @@ export const DEPLOYMENT_STATUS_LABELS: Record<DeploymentStatus, string> = {
   blocked: "Blocked",
 };
 
-export const DEPLOYMENT_STATUS_INTENT: Record<DeploymentStatus, StatusIntent> = {
-  requested: "default",
-  pending_approval: "warning",
-  active: "success",
-  superseded: "muted",
-  rolled_back: "warning",
-  blocked: "destructive",
-};
+export const DEPLOYMENT_STATUS_INTENT: Record<DeploymentStatus, StatusIntent> =
+  {
+    requested: "default",
+    pending_approval: "warning",
+    active: "success",
+    superseded: "muted",
+    rolled_back: "warning",
+    blocked: "destructive",
+  };
 
 export const APPROVAL_STATUS_LABELS: Record<ApprovalStatus, string> = {
   pending: "Pending",
@@ -82,9 +83,10 @@ export const INCIDENT_SEVERITY_LABELS: Record<IncidentSeverity, string> = {
   critical: "Critical",
 };
 
-export const INCIDENT_SEVERITY_INTENT: Record<IncidentSeverity, StatusIntent> = {
-  low: "muted",
-  medium: "warning",
-  high: "destructive",
-  critical: "destructive",
-};
+export const INCIDENT_SEVERITY_INTENT: Record<IncidentSeverity, StatusIntent> =
+  {
+    low: "muted",
+    medium: "warning",
+    high: "destructive",
+    critical: "destructive",
+  };

@@ -30,16 +30,22 @@ Status legend: [ ] not started, [~] in progress, [x] complete.
 - [x] Error, loading, and not-found states
 - [x] Quality tooling: lint, typecheck, format, test scripts
 - [x] Vitest test foundation with baseline tests
-- [ ] Correlation IDs and structured logging in request path (Phase 2)
-- [ ] CI pipeline wired in the repository (Phase 2)
-- [ ] Health check endpoint (Phase 2)
 
-## Phase 2: Core Data Model
+## Phase 2: Core Data Model and Persistence
 
-- [ ] Schema for all core entities
-- [ ] Migration tooling
-- [ ] Outbox table and publisher skeleton
-- [ ] Tenant scoping enforced at data access layer
+- [x] Refined Prisma schema with UUID keys, enums, indexes, and tenant scoping
+- [x] Initial migration SQL generated offline (prisma/migrations/0001_init)
+- [x] Strengthened Prisma client singleton, import-safe without DATABASE_URL
+- [x] Repository layer for all core entities
+- [x] Service layer foundation calling repositories with mock fallback
+- [x] Typed API response helpers and error utilities
+- [x] Correlation ID utility and structured logging utility
+- [x] Health, demo status, and guarded demo reset endpoints
+- [x] Read-only foundation API endpoints for core resources
+- [x] Repeatable seed routine shared by CLI and demo reset
+- [x] Repository, utility, API helper, and seed integrity tests
+- [ ] Migration executed against a live database (requires DATABASE_URL)
+- [ ] CI pipeline wired in the repository (Phase 3)
 
 ## Phase 3: Control Plane Modules
 

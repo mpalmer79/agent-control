@@ -17,11 +17,11 @@ SYSTEM_DESIGN.md section 4.7.
 Risk is assigned to agents and models, and evaluated per action. The MVP uses
 three levels.
 
-| Level | Meaning | Default deployment behavior |
-| --- | --- | --- |
-| Low | Limited blast radius, non-sensitive output. | May deploy automatically if all gates pass. |
-| Medium | Customer-facing or moderate impact. | Requires human approval for production. |
-| High | Sensitive domains (financial, legal, medical), high cost, or policy override. | Requires human approval for any production promotion and stricter checks. |
+| Level  | Meaning                                                                       | Default deployment behavior                                               |
+| ------ | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Low    | Limited blast radius, non-sensitive output.                                   | May deploy automatically if all gates pass.                               |
+| Medium | Customer-facing or moderate impact.                                           | Requires human approval for production.                                   |
+| High   | Sensitive domains (financial, legal, medical), high cost, or policy override. | Requires human approval for any production promotion and stricter checks. |
 
 Risk inputs include the agent risk classification, the model risk rating, the
 target environment, and policy findings. The effective risk for an action is the

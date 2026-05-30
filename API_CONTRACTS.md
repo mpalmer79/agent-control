@@ -4,6 +4,28 @@ Planned HTTP API for Agent Control. This document defines resources, routes,
 request and response structure, and the error model. It is a contract, not an
 implementation. Routes align with SYSTEM_DESIGN.md section 9.
 
+## Phase 2 Foundation Endpoints
+
+Phase 2 implements read-only foundation endpoints under `src/app/api`. They use
+a consistent envelope (see `src/lib/api/responses.ts`):
+
+```json
+{
+  "success": true,
+  "data": {},
+  "meta": { "correlationId": "string", "source": "database | mock" }
+}
+```
+
+Errors use the matching shape with `success: false` and `error.code`. Every
+response sets the `x-correlation-id` header. Endpoints serve database data when
+DATABASE_URL is configured and seed-derived mock data otherwise. Implemented
+endpoints: `GET /api/health`, `GET /api/demo/status`, `POST /api/demo/reset`
+(guarded), `GET /api/agents`, `GET /api/prompts`, `GET /api/deployments`,
+`GET /api/approvals`, `GET /api/evaluations`, `GET /api/incidents`,
+`GET /api/audit-events`, and `GET /api/metrics/summary`. Mutating resource
+endpoints and authorization enforcement arrive in later phases.
+
 ## Conventions
 
 - Base path: /api.
@@ -182,7 +204,7 @@ Idempotency-Key: <client-generated-key>
   "data": {
     "id": "uuid",
     "type": "agent",
-    "attributes": { },
+    "attributes": {},
     "created_at": "2026-05-30T15:42:10Z"
   },
   "correlation_id": "uuid"
@@ -193,7 +215,7 @@ Idempotency-Key: <client-generated-key>
 
 ```json
 {
-  "data": [ { "id": "uuid", "type": "deployment", "attributes": { } } ],
+  "data": [{ "id": "uuid", "type": "deployment", "attributes": {} }],
   "page": { "next_cursor": "opaque-cursor-or-null", "limit": 50 },
   "correlation_id": "uuid"
 }
@@ -232,7 +254,7 @@ All errors share a consistent shape.
   "error": {
     "code": "string_machine_code",
     "message": "Human readable explanation",
-    "details": { }
+    "details": {}
   },
   "correlation_id": "uuid"
 }

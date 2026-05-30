@@ -13,7 +13,9 @@ export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   appUrl: readOptional("NEXT_PUBLIC_APP_URL") ?? "http://localhost:3000",
   environmentLabel: readOptional("NEXT_PUBLIC_ENVIRONMENT") ?? "development",
+  appVersion: readOptional("NEXT_PUBLIC_APP_VERSION") ?? "0.1.0",
   demoMode: readOptional("NEXT_PUBLIC_DEMO_MODE") !== "false",
+  allowDemoReset: readOptional("ALLOW_DEMO_RESET") === "true",
   databaseUrl: readOptional("DATABASE_URL"),
   clerk: {
     publishableKey: readOptional("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"),

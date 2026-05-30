@@ -184,13 +184,13 @@ Responsibilities:
 Example model metadata:
 
 {
-  "model_key": "claude-sonnet-4",
-  "provider": "anthropic",
-  "context_window": 200000,
-  "input_cost_per_million": 3.00,
-  "output_cost_per_million": 15.00,
-  "risk_level": "medium",
-  "enabled_for_production": true
+"model_key": "claude-sonnet-4",
+"provider": "anthropic",
+"context_window": 200000,
+"input_cost_per_million": 3.00,
+"output_cost_per_million": 15.00,
+"risk_level": "medium",
+"enabled_for_production": true
 }
 
 ### 4.6 Deployment Service
@@ -389,6 +389,7 @@ Examples:
 ### 6.1 Organization
 
 organizations
+
 - id
 - name
 - slug
@@ -398,6 +399,7 @@ organizations
 ### 6.2 User
 
 users
+
 - id
 - organization_id
 - email
@@ -410,6 +412,7 @@ users
 ### 6.3 Agent
 
 agents
+
 - id
 - organization_id
 - name
@@ -422,6 +425,7 @@ agents
 ### 6.4 Agent Version
 
 agent_versions
+
 - id
 - agent_id
 - version
@@ -434,6 +438,7 @@ agent_versions
 ### 6.5 Prompt
 
 prompts
+
 - id
 - organization_id
 - name
@@ -445,6 +450,7 @@ prompts
 ### 6.6 Prompt Version
 
 prompt_versions
+
 - id
 - prompt_id
 - version
@@ -457,6 +463,7 @@ prompt_versions
 ### 6.7 Model
 
 models
+
 - id
 - provider
 - model_key
@@ -472,6 +479,7 @@ models
 ### 6.8 Deployment
 
 deployments
+
 - id
 - agent_id
 - agent_version_id
@@ -486,6 +494,7 @@ deployments
 ### 6.9 Approval
 
 approvals
+
 - id
 - organization_id
 - resource_type
@@ -500,6 +509,7 @@ approvals
 ### 6.10 Evaluation Run
 
 evaluation_runs
+
 - id
 - agent_version_id
 - suite_name
@@ -513,6 +523,7 @@ evaluation_runs
 ### 6.11 Audit Event
 
 audit_events
+
 - id
 - organization_id
 - actor_user_id
@@ -527,6 +538,7 @@ audit_events
 ### 6.12 Cost Record
 
 cost_records
+
 - id
 - organization_id
 - agent_id
@@ -544,84 +556,84 @@ cost_records
 All events share a common envelope.
 
 {
-  "event_id": "uuid",
-  "event_type": "PromptVersionCreated",
-  "organization_id": "uuid",
-  "actor_user_id": "uuid",
-  "correlation_id": "uuid",
-  "occurred_at": "2026-05-30T15:42:10Z",
-  "payload": {}
+"event_id": "uuid",
+"event_type": "PromptVersionCreated",
+"organization_id": "uuid",
+"actor_user_id": "uuid",
+"correlation_id": "uuid",
+"occurred_at": "2026-05-30T15:42:10Z",
+"payload": {}
 }
 
 ### 7.1 AgentCreated
 
 {
-  "event_type": "AgentCreated",
-  "payload": {
-    "agent_id": "uuid",
-    "name": "Customer Support Agent",
-    "owner_user_id": "uuid"
-  }
+"event_type": "AgentCreated",
+"payload": {
+"agent_id": "uuid",
+"name": "Customer Support Agent",
+"owner_user_id": "uuid"
+}
 }
 
 ### 7.2 PromptVersionCreated
 
 {
-  "event_type": "PromptVersionCreated",
-  "payload": {
-    "prompt_id": "uuid",
-    "prompt_version_id": "uuid",
-    "version": "v4",
-    "change_reason": "Improved refusal behavior"
-  }
+"event_type": "PromptVersionCreated",
+"payload": {
+"prompt_id": "uuid",
+"prompt_version_id": "uuid",
+"version": "v4",
+"change_reason": "Improved refusal behavior"
+}
 }
 
 ### 7.3 DeploymentRequested
 
 {
-  "event_type": "DeploymentRequested",
-  "payload": {
-    "deployment_id": "uuid",
-    "agent_id": "uuid",
-    "agent_version_id": "uuid",
-    "environment": "production"
-  }
+"event_type": "DeploymentRequested",
+"payload": {
+"deployment_id": "uuid",
+"agent_id": "uuid",
+"agent_version_id": "uuid",
+"environment": "production"
+}
 }
 
 ### 7.4 ApprovalDecisionRecorded
 
 {
-  "event_type": "ApprovalDecisionRecorded",
-  "payload": {
-    "approval_id": "uuid",
-    "status": "approved",
-    "decision_reason": "Passed evaluation and policy checks"
-  }
+"event_type": "ApprovalDecisionRecorded",
+"payload": {
+"approval_id": "uuid",
+"status": "approved",
+"decision_reason": "Passed evaluation and policy checks"
+}
 }
 
 ### 7.5 EvaluationCompleted
 
 {
-  "event_type": "EvaluationCompleted",
-  "payload": {
-    "evaluation_run_id": "uuid",
-    "agent_version_id": "uuid",
-    "score": 0.94,
-    "passed": true
-  }
+"event_type": "EvaluationCompleted",
+"payload": {
+"evaluation_run_id": "uuid",
+"agent_version_id": "uuid",
+"score": 0.94,
+"passed": true
+}
 }
 
 ### 7.6 CostRecorded
 
 {
-  "event_type": "CostRecorded",
-  "payload": {
-    "agent_id": "uuid",
-    "model_id": "uuid",
-    "input_tokens": 1200,
-    "output_tokens": 600,
-    "estimated_cost": 0.017
-  }
+"event_type": "CostRecorded",
+"payload": {
+"agent_id": "uuid",
+"model_id": "uuid",
+"input_tokens": 1200,
+"output_tokens": 600,
+"estimated_cost": 0.017
+}
 }
 
 ## 8. Key System Flows
@@ -629,20 +641,20 @@ All events share a common envelope.
 ### 8.1 Create Agent Flow
 
 User
-  |
-  v
+|
+v
 Web Control Plane
-  |
-  v
+|
+v
 API Gateway
-  |
-  v
+|
+v
 Agent Service
-  |
-  |-- Validate request
-  |-- Create agent record
-  |-- Create audit event
-  |-- Emit AgentCreated
+|
+|-- Validate request
+|-- Create agent record
+|-- Create audit event
+|-- Emit AgentCreated
 
 Result:
 
@@ -653,15 +665,15 @@ Result:
 ### 8.2 Prompt Update Flow
 
 User edits prompt
-  |
-  v
+|
+v
 Prompt Service
-  |
-  |-- Validate variables
-  |-- Create new immutable prompt version
-  |-- Mark as draft
-  |-- Emit PromptVersionCreated
-  |-- Write audit record
+|
+|-- Validate variables
+|-- Create new immutable prompt version
+|-- Mark as draft
+|-- Emit PromptVersionCreated
+|-- Write audit record
 
 Important rule:
 
@@ -670,142 +682,142 @@ Prompt versions are never edited in place.
 ### 8.3 Production Deployment Flow
 
 User requests production deployment
-  |
-  v
+|
+v
 Deployment Service
-  |
-  |-- Check agent version exists
-  |-- Check prompt approval status
-  |-- Check model allowed in production
-  |-- Check evaluation results
-  |-- Check policy risk level
-  |
-  |-- If low risk:
-  |     |-- Deploy automatically
-  |
-  |-- If medium or high risk:
-        |-- Create approval request
+|
+|-- Check agent version exists
+|-- Check prompt approval status
+|-- Check model allowed in production
+|-- Check evaluation results
+|-- Check policy risk level
+|
+|-- If low risk:
+| |-- Deploy automatically
+|
+|-- If medium or high risk:
+|-- Create approval request
 
 If approved:
 
 Approval recorded
-  |
-  v
+|
+v
 Deployment Service
-  |
-  |-- Promote version
-  |-- Mark deployment active
-  |-- Emit DeploymentPromoted
-  |-- Write audit record
+|
+|-- Promote version
+|-- Mark deployment active
+|-- Emit DeploymentPromoted
+|-- Write audit record
 
 ### 8.4 Rollback Flow
 
 User selects rollback
-  |
-  v
+|
+v
 Deployment Service
-  |
-  |-- Identify previous stable deployment
-  |-- Validate rollback target
-  |-- Create rollback deployment record
-  |-- Mark old deployment inactive
-  |-- Mark rollback deployment active
-  |-- Emit DeploymentRolledBack
-  |-- Write audit record
+|
+|-- Identify previous stable deployment
+|-- Validate rollback target
+|-- Create rollback deployment record
+|-- Mark old deployment inactive
+|-- Mark rollback deployment active
+|-- Emit DeploymentRolledBack
+|-- Write audit record
 
 Rollback does not delete failed deployment records.
 
 ### 8.5 Evaluation Flow
 
 User runs evaluation suite
-  |
-  v
+|
+v
 Evaluation Service
-  |
-  |-- Load test cases
-  |-- Execute agent version
-  |-- Score outputs
-  |-- Store results
-  |-- Emit EvaluationCompleted
-  |-- Write audit record
+|
+|-- Load test cases
+|-- Execute agent version
+|-- Score outputs
+|-- Store results
+|-- Emit EvaluationCompleted
+|-- Write audit record
 
 Evaluation failure can block production deployment.
 
 ### 8.6 Runtime Request Flow
 
 Application calls managed agent
-  |
-  v
+|
+v
 API Gateway
-  |
-  |-- Attach correlation ID
-  |-- Authenticate request
-  |-- Route request
-  |
-  v
+|
+|-- Attach correlation ID
+|-- Authenticate request
+|-- Route request
+|
+v
 Agent Runtime Adapter
-  |
-  |-- Load active deployment
-  |-- Load prompt version
-  |-- Load model config
-  |-- Call provider adapter
-  |-- Record tokens and latency
-  |-- Emit telemetry events
-  |-- Return response
+|
+|-- Load active deployment
+|-- Load prompt version
+|-- Load model config
+|-- Call provider adapter
+|-- Record tokens and latency
+|-- Emit telemetry events
+|-- Return response
 
 ## 9. API Design
 
 ### 9.1 Agent APIs
 
-GET    /api/agents
-POST   /api/agents
-GET    /api/agents/{agent_id}
-PATCH  /api/agents/{agent_id}
-GET    /api/agents/{agent_id}/versions
-POST   /api/agents/{agent_id}/versions
+GET /api/agents
+POST /api/agents
+GET /api/agents/{agent_id}
+PATCH /api/agents/{agent_id}
+GET /api/agents/{agent_id}/versions
+POST /api/agents/{agent_id}/versions
 
 ### 9.2 Prompt APIs
 
-GET    /api/prompts
-POST   /api/prompts
-GET    /api/prompts/{prompt_id}
-POST   /api/prompts/{prompt_id}/versions
-GET    /api/prompts/{prompt_id}/versions
-GET    /api/prompts/{prompt_id}/versions/{version_id}
+GET /api/prompts
+POST /api/prompts
+GET /api/prompts/{prompt_id}
+POST /api/prompts/{prompt_id}/versions
+GET /api/prompts/{prompt_id}/versions
+GET /api/prompts/{prompt_id}/versions/{version_id}
 
 ### 9.3 Deployment APIs
 
-GET    /api/deployments
-POST   /api/deployments
-POST   /api/deployments/{deployment_id}/promote
-POST   /api/deployments/{deployment_id}/rollback
-GET    /api/deployments/{deployment_id}
+GET /api/deployments
+POST /api/deployments
+POST /api/deployments/{deployment_id}/promote
+POST /api/deployments/{deployment_id}/rollback
+GET /api/deployments/{deployment_id}
 
 ### 9.4 Approval APIs
 
-GET    /api/approvals
-GET    /api/approvals/{approval_id}
-POST   /api/approvals/{approval_id}/approve
-POST   /api/approvals/{approval_id}/reject
+GET /api/approvals
+GET /api/approvals/{approval_id}
+POST /api/approvals/{approval_id}/approve
+POST /api/approvals/{approval_id}/reject
 
 ### 9.5 Evaluation APIs
 
-GET    /api/evaluations
-POST   /api/evaluations/run
-GET    /api/evaluations/{evaluation_run_id}
+GET /api/evaluations
+POST /api/evaluations/run
+GET /api/evaluations/{evaluation_run_id}
 
 ### 9.6 Observability APIs
 
-GET    /api/metrics/agents/{agent_id}
-GET    /api/metrics/models/{model_id}
-GET    /api/incidents
-GET    /api/traces/{correlation_id}
+GET /api/metrics/agents/{agent_id}
+GET /api/metrics/models/{model_id}
+GET /api/incidents
+GET /api/traces/{correlation_id}
 
 ### 9.7 Audit APIs
 
-GET    /api/audit-events
-GET    /api/audit-events/{audit_event_id}
-GET    /api/audit-events/export
+GET /api/audit-events
+GET /api/audit-events/{audit_event_id}
+GET /api/audit-events/export
 
 ## 10. Authorization Model
 
@@ -833,13 +845,13 @@ Can view dashboards, summaries, risks, costs, and trends.
 
 ### 10.2 Permission Examples
 
-agents:create              Platform Engineer, Administrator
-prompts:create             Platform Engineer, Administrator
-deployments:promote        Platform Engineer, Administrator
-approvals:approve          Reviewer, Administrator
-audit:read                 Auditor, Administrator
-costs:read                 Executive, Administrator
-users:manage               Administrator
+agents:create Platform Engineer, Administrator
+prompts:create Platform Engineer, Administrator
+deployments:promote Platform Engineer, Administrator
+approvals:approve Reviewer, Administrator
+audit:read Auditor, Administrator
+costs:read Executive, Administrator
+users:manage Administrator
 
 ## 11. Security Design
 
@@ -1046,16 +1058,16 @@ Critical events should use the outbox pattern.
 Flow:
 
 Service writes business record
-  |
-  |-- Same transaction writes outbox event
-  |
-  v
+|
+|-- Same transaction writes outbox event
+|
+v
 Background publisher reads outbox
-  |
-  v
+|
+v
 Publishes event to event bus
-  |
-  v
+|
+v
 Marks outbox event as published
 
 This prevents losing events when a service crashes after writing database state but before publishing to the event bus.
@@ -1083,13 +1095,13 @@ Logs should be JSON structured.
 Example:
 
 {
-  "level": "info",
-  "service": "deployment-service",
-  "message": "deployment promoted",
-  "deployment_id": "uuid",
-  "agent_id": "uuid",
-  "environment": "production",
-  "correlation_id": "uuid"
+"level": "info",
+"service": "deployment-service",
+"message": "deployment promoted",
+"deployment_id": "uuid",
+"agent_id": "uuid",
+"environment": "production",
+"correlation_id": "uuid"
 }
 
 ### 16.3 Metrics
@@ -1212,26 +1224,26 @@ Reason:
 Recommended structure:
 
 /app
-  /dashboard
-  /agents
-  /prompts
-  /deployments
-  /approvals
-  /evaluations
-  /audit
-  /costs
+/dashboard
+/agents
+/prompts
+/deployments
+/approvals
+/evaluations
+/audit
+/costs
 
 /server
-  /modules
-    /agents
-    /prompts
-    /models
-    /deployments
-    /governance
-    /evaluations
-    /observability
-    /audit
-    /costs
+/modules
+/agents
+/prompts
+/models
+/deployments
+/governance
+/evaluations
+/observability
+/audit
+/costs
 
 Later, modules can be extracted into separate services.
 

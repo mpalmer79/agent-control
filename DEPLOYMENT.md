@@ -9,14 +9,14 @@ section 17.
 The MVP optimizes for portfolio speed, low cost, and reliability. It uses a
 simulated runtime, so there is no dependency on live AI providers.
 
-| Component | Platform |
-| --- | --- |
-| Application (Next.js App Router) | Vercel |
-| Database | Railway PostgreSQL |
-| Authentication | Clerk |
-| Cache (optional) | Railway Redis |
-| Background workers | Railway |
-| Object storage (optional) | S3-compatible storage |
+| Component                        | Platform              |
+| -------------------------------- | --------------------- |
+| Application (Next.js App Router) | Vercel                |
+| Database                         | Railway PostgreSQL    |
+| Authentication                   | Clerk                 |
+| Cache (optional)                 | Railway Redis         |
+| Background workers               | Railway               |
+| Object storage (optional)        | S3-compatible storage |
 
 The MVP is a single Next.js application (App Router) with TypeScript and Prisma.
 The UI and API routes deploy together to Vercel; PostgreSQL is hosted on Railway;
@@ -29,6 +29,17 @@ authentication is provided by Clerk.
 - Real provider calls available only behind a protected admin mode.
 - Daily PostgreSQL backups.
 - Environment configuration via platform variables, never committed secrets (see .env.example and SECURITY.md).
+
+### Migrations and Health (from Phase 2)
+
+The Prisma schema is migration ready. The initial migration SQL is generated at
+`prisma/migrations/0001_init`. With DATABASE_URL set, apply it with
+`npm run prisma:migrate` (development) or `prisma migrate deploy` (production
+style), then seed with `npm run seed`. The `GET /api/health` endpoint reports
+service, environment, version, and database status (ok, degraded, or
+not_configured) and is suitable for a readiness check. The guarded
+`POST /api/demo/reset` endpoint reseeds the demo dataset and is disabled in
+production unless ALLOW_DEMO_RESET is set.
 
 ### MVP Deployment Steps (high level)
 
@@ -52,17 +63,17 @@ The production topology scales the same modular monolith and extracts services
 only when justified. It introduces managed infrastructure and a dedicated event
 bus.
 
-| Component | Platform |
-| --- | --- |
-| Frontend | Vercel or CDN-backed hosting (for example, CloudFront) |
-| API services | Kubernetes |
-| Background workers | Kubernetes |
-| Database | Managed PostgreSQL |
-| Cache | Managed Redis |
-| Event bus | Kafka or NATS |
-| Object storage | S3 |
-| Observability | OpenTelemetry, Prometheus, Grafana |
-| Secrets | Cloud secret manager |
+| Component          | Platform                                               |
+| ------------------ | ------------------------------------------------------ |
+| Frontend           | Vercel or CDN-backed hosting (for example, CloudFront) |
+| API services       | Kubernetes                                             |
+| Background workers | Kubernetes                                             |
+| Database           | Managed PostgreSQL                                     |
+| Cache              | Managed Redis                                          |
+| Event bus          | Kafka or NATS                                          |
+| Object storage     | S3                                                     |
+| Observability      | OpenTelemetry, Prometheus, Grafana                     |
+| Secrets            | Cloud secret manager                                   |
 
 ### Production Considerations
 
