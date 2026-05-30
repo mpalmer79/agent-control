@@ -2,6 +2,7 @@ import { getDemoContext } from "@/server/context";
 import { load } from "@/server/data-source";
 import { logger } from "@/lib/observability/logger";
 import { NotFoundError, toAppError } from "@/lib/errors";
+import { prisma } from "@/lib/prisma/client";
 import { mapDeployment } from "@/server/mappers";
 import { mockDeployments } from "@/server/mock-source";
 import {
@@ -18,10 +19,14 @@ import {
 } from "@/server/modules/governance/policy-engine";
 import {
   findSeedDeployment,
-  promotionFactsForDeployment,
   rollbackCandidatesForAgent,
-  rollbackFactsForDeployment,
 } from "@/server/workflows/facts";
+import {
+  dbPromotionFacts,
+  dbRollbackFacts,
+  seedPromotionFacts,
+  seedRollbackFacts,
+} from "@/server/workflows/fact-source";
 import {
   blockedResult,
   buildResult,
@@ -94,7 +99,14 @@ export async function promoteDeployment(
   const action = input.request
     ? "deployment.request_promotion"
     : "deployment.promote";
-  const facts = promotionFactsForDeployment(input.deploymentId);
+  const persistence = isPersistenceEnabled();
+  const organizationId = persistence
+    ? await resolveOrganizationId(principal.organizationSlug)
+    : null;
+  const facts =
+    persistence && organizationId
+      ? await dbPromotionFacts(organizationId, input.deploymentId)
+      : seedPromotionFacts(input.deploymentId);
   const decision = evaluatePromotion(facts);
   decision.action = action;
 
@@ -139,6 +151,7 @@ export async function promoteDeployment(
       auditAction: "deployment.promotion_requested",
       eventType: "DeploymentPromotionRequested",
       deploymentId: input.deploymentId,
+      transition: "pending_approval",
       newState: { status: "PENDING_APPROVAL" },
     });
   }
@@ -164,8 +177,8 @@ export async function promoteDeployment(
     auditAction: "deployment.promoted",
     eventType: "DeploymentPromoted",
     deploymentId: input.deploymentId,
+    transition: "promote",
     newState: { status: "ACTIVE" },
-    setActive: true,
   });
 }
 
@@ -184,9 +197,20 @@ export async function rollbackDeployment(
   const principal = await getPrincipal();
   requirePermission(principal, "deployments:rollback");
 
+  const persistence = isPersistenceEnabled();
+  const organizationId = persistence
+    ? await resolveOrganizationId(principal.organizationSlug)
+    : null;
   const current = findSeedDeployment(input.deploymentId);
   const agentKey = current?.agentKey ?? "";
-  const facts = rollbackFactsForDeployment(input.targetDeploymentId, agentKey);
+  const facts =
+    persistence && organizationId
+      ? await dbRollbackFacts(
+          organizationId,
+          input.deploymentId,
+          input.targetDeploymentId,
+        )
+      : seedRollbackFacts(input.targetDeploymentId, agentKey);
   const decision = evaluateRollback(facts);
 
   const target = findSeedDeployment(input.targetDeploymentId);
@@ -228,8 +252,8 @@ export async function rollbackDeployment(
     auditAction: "deployment.rolled_back",
     eventType: "DeploymentRolledBack",
     deploymentId: input.targetDeploymentId,
+    transition: "rollback",
     newState: { status: "ACTIVE" },
-    setActive: true,
     rolledBackFrom: input.deploymentId,
   });
 }
@@ -247,8 +271,16 @@ export function getRollbackCandidates(correlationId: string, agentKey: string) {
   );
 }
 
-// Persist a workflow state transition with audit and outbox evidence in a
-// single transaction. Used by the promotion and rollback workflows.
+// The persisted state transition a workflow performs. The deployment record is
+// actually changed, not just evidenced:
+// - pending_approval: the deployment moves to PENDING_APPROVAL.
+// - promote: the deployment becomes ACTIVE and prior active deployments for the
+//   same agent and environment are superseded.
+// - rollback: the target becomes ACTIVE, prior active deployments are
+//   superseded, and the rolled-back-from deployment is marked ROLLED_BACK
+//   (preserved, never deleted).
+type Transition = "pending_approval" | "promote" | "rollback";
+
 interface PersistInput {
   action: WorkflowActionResult["action"];
   status: WorkflowActionResult["status"];
@@ -258,12 +290,18 @@ interface PersistInput {
   affectedResource?: WorkflowActionResult["affectedResource"];
   auditAction: string;
   eventType: string;
+  // The deployment whose state changes (the target being activated for
+  // promotion and rollback).
   deploymentId: string;
+  transition: Transition;
   newState: Record<string, unknown>;
-  setActive?: boolean;
+  // For rollback, the deployment being rolled back from (preserved).
   rolledBackFrom?: string;
 }
 
+// Persist a workflow state transition with audit and outbox evidence in a
+// single Prisma transaction. The deployment state change, the append-only audit
+// event, and the pending outbox event all commit together or not at all.
 async function persistWorkflow(
   input: PersistInput,
 ): Promise<WorkflowActionResult> {
@@ -272,6 +310,8 @@ async function persistWorkflow(
     const organizationId = await resolveOrganizationId(
       principal.organizationSlug,
     );
+
+    // Verify existence and tenant scope before the transaction.
     const deployment = await deploymentRepository.findById(
       organizationId,
       input.deploymentId,
@@ -280,29 +320,79 @@ async function persistWorkflow(
       throw new NotFoundError("Deployment not found");
     }
 
-    const audit = await auditRepository.create({
-      organizationId,
-      actorUserId: null,
-      action: input.auditAction,
-      resourceType: "deployment",
-      resourceId: input.deploymentId,
-      correlationId: input.correlationId,
-      previousStateJson: { status: deployment.status },
-      newStateJson: input.newState,
-    });
+    const evidence = await prisma.$transaction(async (tx) => {
+      // Apply the actual state change.
+      if (input.transition === "pending_approval") {
+        await deploymentRepository.markPendingApproval(input.deploymentId, tx);
+      } else if (input.transition === "promote") {
+        await deploymentRepository.supersedeActiveForAgentEnvironment(
+          organizationId,
+          deployment.agentId,
+          deployment.environment,
+          input.deploymentId,
+          tx,
+        );
+        await deploymentRepository.markActive(
+          input.deploymentId,
+          { approvedBy: principal.userId },
+          tx,
+        );
+      } else {
+        // rollback: activate the target, supersede other active deployments,
+        // and preserve the rolled-back-from record by marking it ROLLED_BACK.
+        await deploymentRepository.supersedeActiveForAgentEnvironment(
+          organizationId,
+          deployment.agentId,
+          deployment.environment,
+          input.deploymentId,
+          tx,
+        );
+        await deploymentRepository.markActive(
+          input.deploymentId,
+          { approvedBy: principal.userId },
+          tx,
+        );
+        if (input.rolledBackFrom) {
+          await deploymentRepository.markRolledBack(
+            input.rolledBackFrom,
+            input.deploymentId,
+            tx,
+          );
+        }
+      }
 
-    const outbox = await outboxRepository.create({
-      organizationId,
-      eventType: input.eventType,
-      aggregateType: "deployment",
-      aggregateId: input.deploymentId,
-      payloadJson: {
-        deployment_id: input.deploymentId,
-        ...(input.rolledBackFrom
-          ? { rolled_back_from_deployment_id: input.rolledBackFrom }
-          : {}),
-      },
-      correlationId: input.correlationId,
+      const audit = await auditRepository.create(
+        {
+          organizationId,
+          actorUserId: null,
+          action: input.auditAction,
+          resourceType: "deployment",
+          resourceId: input.deploymentId,
+          correlationId: input.correlationId,
+          previousStateJson: { status: deployment.status },
+          newStateJson: input.newState,
+        },
+        tx,
+      );
+
+      const outbox = await outboxRepository.create(
+        {
+          organizationId,
+          eventType: input.eventType,
+          aggregateType: "deployment",
+          aggregateId: input.deploymentId,
+          payloadJson: {
+            deployment_id: input.deploymentId,
+            ...(input.rolledBackFrom
+              ? { rolled_back_from_deployment_id: input.rolledBackFrom }
+              : {}),
+          },
+          correlationId: input.correlationId,
+        },
+        tx,
+      );
+
+      return { auditId: audit.id, outboxId: outbox.id };
     });
 
     logger.info("deployment workflow persisted", {
@@ -318,8 +408,8 @@ async function persistWorkflow(
       correlationId: input.correlationId,
       policyDecision: input.decision,
       affectedResource: input.affectedResource,
-      auditEventId: audit.id,
-      outboxEventId: outbox.id,
+      auditEventId: evidence.auditId,
+      outboxEventId: evidence.outboxId,
     });
   } catch (error) {
     throw toAppError(error);

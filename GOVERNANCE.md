@@ -27,11 +27,18 @@ decided, and rejection requires a reason.
 
 When a policy blocks an action, no state changes and no outbox event is created;
 the workflow returns a typed blocked result with the reasons. Successful
-persisted actions write an append-only audit event and a pending outbox event in
-a transaction. Without a database, workflows return clearly labeled simulated
-results and claim no persisted evidence. Workflow endpoints are listed in
-API_CONTRACTS.md; audit and event names are in AUDIT_MODEL.md and
-EVENT_CONTRACTS.md.
+persisted actions change the business record, write an append-only audit event,
+and write a pending outbox event, all in a single Prisma transaction: a
+promotion marks the target deployment active and supersedes prior active
+deployments for the same agent and environment; a rollback activates the target
+and marks the rolled-back-from deployment ROLLED_BACK while preserving the
+record; an approval decision updates only a still-pending request, and a
+concurrent decision aborts the transaction with no evidence. Policy facts are
+gathered from the repositories when persistence is enabled (so a persisted
+mutation is never based on stale seed data) and from the seed scenario in demo
+mode. Without a database, workflows return clearly labeled simulated results and
+claim no persisted evidence. Workflow endpoints are listed in API_CONTRACTS.md;
+audit and event names are in AUDIT_MODEL.md and EVENT_CONTRACTS.md.
 
 ## Goals
 
