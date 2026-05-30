@@ -19,6 +19,14 @@ Principles:
 - Telemetry never blocks safe core operations; if observability storage degrades, low-risk runtime calls continue with delayed telemetry.
 - Incidents are derived from metrics and recorded as durable records in PostgreSQL.
 
+## Implementation Status (from Phase 2)
+
+The correlation ID utility (`src/lib/observability/correlation.ts`) reads the
+`x-correlation-id` header or generates an ID, and every API response echoes it.
+The structured logger (`src/lib/observability/logger.ts`) emits JSON lines with
+service, level, message, timestamp, and optional context, and redacts sensitive
+keys. Full trace propagation and metric collection arrive in Phase 5.
+
 ## Correlation IDs
 
 - The API gateway attaches a correlation_id to every request.

@@ -35,16 +35,16 @@ The top-level navigation has eight destinations:
 Navigation is role-aware. Items the current role cannot use are hidden or shown
 in a disabled state with an explanation. Role-to-area mapping:
 
-| Area | Primary roles |
-| --- | --- |
-| Dashboard | All roles |
-| Agents | Platform Engineer, Administrator |
-| Prompts | Platform Engineer, Administrator |
-| Deployments | Platform Engineer, Administrator |
-| Governance | Reviewer, Administrator (Auditor read-only) |
-| Observability | All roles (Executive summary view) |
-| Audit | Auditor, Administrator |
-| Settings | Administrator |
+| Area          | Primary roles                               |
+| ------------- | ------------------------------------------- |
+| Dashboard     | All roles                                   |
+| Agents        | Platform Engineer, Administrator            |
+| Prompts       | Platform Engineer, Administrator            |
+| Deployments   | Platform Engineer, Administrator            |
+| Governance    | Reviewer, Administrator (Auditor read-only) |
+| Observability | All roles (Executive summary view)          |
+| Audit         | Auditor, Administrator                      |
+| Settings      | Administrator                               |
 
 ## Information Architecture
 

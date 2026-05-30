@@ -60,6 +60,15 @@ The application shell exists. Match the established layout when adding code.
 The MVP uses a mock data layer (`src/lib/mock`) for the shell. Database-backed
 reads arrive in later phases. The shell renders without Clerk keys or a database.
 
+## Persistence Layer (from Phase 2)
+
+- Prisma schema: `prisma/schema.prisma`. Client singleton: `src/lib/prisma/client.ts` (import-safe without DATABASE_URL).
+- Repositories: `src/server/repositories`. Services call repositories, never Prisma directly.
+- Services: `src/server/modules/<domain>/service.ts`. They prefer the database when configured and fall back to seed-derived mock data otherwise (`src/server/data-source.ts`, `src/server/mock-source.ts`).
+- API helpers: `src/lib/api/responses.ts`. Errors: `src/lib/errors`. Observability: `src/lib/observability`.
+- Shared seed routine: `src/server/modules/demo/seed-runner.ts`, used by both the seed CLI and the guarded demo reset.
+- Every tenant-owned query is scoped by organizationId via `tenantWhere`. The correlation header is `x-correlation-id`.
+
 ## Architecture Rules
 
 - Build as a modular monolith first. Do not extract services prematurely.

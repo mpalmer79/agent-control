@@ -10,9 +10,7 @@ const hasClerk = Boolean(
 
 const passthrough: NextMiddleware = () => NextResponse.next();
 
-export default (
-  hasClerk ? clerkMiddleware() : passthrough
-) as NextMiddleware;
+export default (hasClerk ? clerkMiddleware() : passthrough) as NextMiddleware;
 
 export const config = {
   matcher: [

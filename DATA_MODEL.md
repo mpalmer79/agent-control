@@ -1,5 +1,15 @@
 # Data Model
 
+The implemented Prisma schema lives at `prisma/schema.prisma` (Phase 2). It uses
+UUID primary keys, enums for controlled status values, indexes, and tenant
+scoping by organizationId. Prisma enum names use upper snake case (for example
+AgentRiskLevel, EnvironmentType, DeploymentStatus); the TypeScript domain unions
+in `src/types/domain.ts` use lowercase forms and are mapped at the service
+boundary. AuditEvent.action is a string because audit actions follow the
+resource.action dot convention (AUDIT_MODEL.md), which a database enum cannot
+represent. The initial migration SQL is generated at
+`prisma/migrations/0001_init`.
+
 Domain model for Agent Control. This document defines entities, relationships,
 and ownership boundaries. It is domain modeling only. It does not specify
 database implementation, indexes, or migrations. Attribute lists describe domain
@@ -15,18 +25,18 @@ fields that align with SYSTEM_DESIGN.md section 6.
 
 ## Ownership Boundaries
 
-| Module | Owns |
-| --- | --- |
+| Module              | Owns                            |
+| ------------------- | ------------------------------- |
 | Identity (platform) | Organization, User, Environment |
-| Agents | Agent, AgentVersion |
-| Prompts | Prompt, PromptVersion |
-| Models | Model |
-| Deployments | Deployment |
-| Governance | Approval, Policy |
-| Evaluations | EvaluationRun |
-| Observability | Incident |
-| Costs | CostRecord |
-| Audit | AuditEvent |
+| Agents              | Agent, AgentVersion             |
+| Prompts             | Prompt, PromptVersion           |
+| Models              | Model                           |
+| Deployments         | Deployment                      |
+| Governance          | Approval, Policy                |
+| Evaluations         | EvaluationRun                   |
+| Observability       | Incident                        |
+| Costs               | CostRecord                      |
+| Audit               | AuditEvent                      |
 
 Cross-module references (for example, AgentVersion referencing PromptVersion and
 Model) are by identifier. The referencing module does not read the foreign

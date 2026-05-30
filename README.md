@@ -67,28 +67,28 @@ The MVP stack is locked (see [DECISIONS.md](./DECISIONS.md)):
 
 ## Documentation Map
 
-| Document | Purpose |
-| --- | --- |
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | Product architecture and domain model (source of truth). |
-| [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md) | Technical system design (source of truth). |
-| [PRODUCT_REQUIREMENTS.md](./PRODUCT_REQUIREMENTS.md) | Personas, user stories, scope, and acceptance criteria. |
-| [MASSIVE_ACTION_PLAN.md](./MASSIVE_ACTION_PLAN.md) | Multi-phase implementation roadmap. |
-| [PHASES.md](./PHASES.md) | Concise progress tracker and checkpoints. |
-| [CLAUDE.md](./CLAUDE.md) | Working rules for future Claude Code sessions. |
-| [DECISIONS.md](./DECISIONS.md) | Architecture decision records. |
-| [DATA_MODEL.md](./DATA_MODEL.md) | Domain entities, relationships, and ownership. |
-| [EVENT_CONTRACTS.md](./EVENT_CONTRACTS.md) | Event naming, envelope, and examples. |
-| [API_CONTRACTS.md](./API_CONTRACTS.md) | Planned resources, routes, and error model. |
-| [UI_ARCHITECTURE.md](./UI_ARCHITECTURE.md) | Navigation, information architecture, and core user flows. |
-| [GOVERNANCE.md](./GOVERNANCE.md) | Risk levels, approvals, and fail-closed behavior. |
-| [AUDIT_MODEL.md](./AUDIT_MODEL.md) | Audit events, retention, and immutability. |
-| [OBSERVABILITY.md](./OBSERVABILITY.md) | Logs, metrics, traces, and incidents. |
-| [SEED_DATA_PLAN.md](./SEED_DATA_PLAN.md) | Demo data design. |
-| [DEMO_SCRIPT.md](./DEMO_SCRIPT.md) | Five-minute reviewer walkthrough. |
-| [TESTING_STRATEGY.md](./TESTING_STRATEGY.md) | Testing approach across layers. |
-| [DEPLOYMENT.md](./DEPLOYMENT.md) | MVP and future production deployment. |
-| [SECURITY.md](./SECURITY.md) | Auth, tenancy, secrets, and audit integrity. |
-| [CONTRIBUTING.md](./CONTRIBUTING.md) | Branching, commits, and review expectations. |
+| Document                                             | Purpose                                                    |
+| ---------------------------------------------------- | ---------------------------------------------------------- |
+| [ARCHITECTURE.md](./ARCHITECTURE.md)                 | Product architecture and domain model (source of truth).   |
+| [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md)               | Technical system design (source of truth).                 |
+| [PRODUCT_REQUIREMENTS.md](./PRODUCT_REQUIREMENTS.md) | Personas, user stories, scope, and acceptance criteria.    |
+| [MASSIVE_ACTION_PLAN.md](./MASSIVE_ACTION_PLAN.md)   | Multi-phase implementation roadmap.                        |
+| [PHASES.md](./PHASES.md)                             | Concise progress tracker and checkpoints.                  |
+| [CLAUDE.md](./CLAUDE.md)                             | Working rules for future Claude Code sessions.             |
+| [DECISIONS.md](./DECISIONS.md)                       | Architecture decision records.                             |
+| [DATA_MODEL.md](./DATA_MODEL.md)                     | Domain entities, relationships, and ownership.             |
+| [EVENT_CONTRACTS.md](./EVENT_CONTRACTS.md)           | Event naming, envelope, and examples.                      |
+| [API_CONTRACTS.md](./API_CONTRACTS.md)               | Planned resources, routes, and error model.                |
+| [UI_ARCHITECTURE.md](./UI_ARCHITECTURE.md)           | Navigation, information architecture, and core user flows. |
+| [GOVERNANCE.md](./GOVERNANCE.md)                     | Risk levels, approvals, and fail-closed behavior.          |
+| [AUDIT_MODEL.md](./AUDIT_MODEL.md)                   | Audit events, retention, and immutability.                 |
+| [OBSERVABILITY.md](./OBSERVABILITY.md)               | Logs, metrics, traces, and incidents.                      |
+| [SEED_DATA_PLAN.md](./SEED_DATA_PLAN.md)             | Demo data design.                                          |
+| [DEMO_SCRIPT.md](./DEMO_SCRIPT.md)                   | Five-minute reviewer walkthrough.                          |
+| [TESTING_STRATEGY.md](./TESTING_STRATEGY.md)         | Testing approach across layers.                            |
+| [DEPLOYMENT.md](./DEPLOYMENT.md)                     | MVP and future production deployment.                      |
+| [SECURITY.md](./SECURITY.md)                         | Auth, tenancy, secrets, and audit integrity.               |
+| [CONTRIBUTING.md](./CONTRIBUTING.md)                 | Branching, commits, and review expectations.               |
 
 ## Reviewer Walkthrough
 
@@ -112,11 +112,27 @@ See [MASSIVE_ACTION_PLAN.md](./MASSIVE_ACTION_PLAN.md) for the full plan.
 
 ## Status
 
-Phase 1 complete: repository shell and infrastructure. The repository now
-contains a runnable Next.js App Router application shell with the control plane
-layout, navigation, a dashboard built on a mock data layer, placeholder pages
-for each area, a Prisma schema foundation, a seed framework, domain module
-skeletons, and quality tooling. Feature behavior arrives in later phases.
+Phase 2 complete: core data model and persistence foundation. On top of the
+Phase 1 shell, the repository now has a refined Prisma schema, a repository
+layer, a service layer with a graceful mock fallback, typed API response
+helpers, error and observability utilities (correlation IDs and structured
+logging), a health endpoint, guarded demo status and reset endpoints, and
+read-only foundation API endpoints for the core resources. The shell still
+renders without a database or Clerk keys. Feature behavior arrives in later
+phases.
+
+### Foundation API Endpoints
+
+All endpoints return a consistent envelope and a correlation ID. They serve
+database data when DATABASE_URL is configured and seed-derived mock data
+otherwise.
+
+- `GET /api/health`: service, environment, version, and database status.
+- `GET /api/demo/status`: demo mode and reset eligibility.
+- `POST /api/demo/reset`: guarded demo dataset reset (development or demo mode).
+- `GET /api/agents`, `GET /api/prompts`, `GET /api/deployments`.
+- `GET /api/approvals`, `GET /api/evaluations`, `GET /api/incidents`.
+- `GET /api/audit-events`, `GET /api/metrics/summary`.
 
 ### Local Development
 
@@ -152,12 +168,20 @@ npm run seed
 
 - Application shell and routes: `src/app` (route groups `(marketing)`, `(app)`, `(auth)`).
 - UI components: `src/components` (ui, layout, navigation, dashboard, shared).
-- Domain modules: `src/server/modules` (one folder per domain).
-- Mock data layer: `src/lib/mock`.
+- Domain modules and services: `src/server/modules` (one folder per domain).
+- Repository layer: `src/server/repositories`.
+- API response helpers: `src/lib/api`. Errors: `src/lib/errors`.
+- Observability utilities: `src/lib/observability` (correlation, logger).
+- Mock data layer (shell): `src/lib/mock`. Seed-derived mock source (API): `src/server/mock-source.ts`.
 - Shared types, constants, config, validation: `src/types` and `src/lib`.
-- Prisma schema and seed: `prisma/schema.prisma` and `prisma/seed.ts`.
-- Seed data: `src/data/seed`.
+- Prisma schema, migrations, and seed: `prisma/schema.prisma`, `prisma/migrations`, `prisma/seed.ts`.
+- Seed data: `src/data/seed`. Shared seed routine: `src/server/modules/demo/seed-runner.ts`.
+- API routes: `src/app/api`.
 - Tests: `src/test`.
+
+The correlation ID header is `x-correlation-id`. Demo reset is guarded by
+`NEXT_PUBLIC_DEMO_MODE` and `ALLOW_DEMO_RESET` and never runs in production
+unless explicitly allowed.
 
 ## License
 

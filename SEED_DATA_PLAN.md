@@ -2,7 +2,18 @@
 
 A realistic demo environment for Agent Control. The seed data must support a
 compelling portfolio walkthrough (see DEMO_SCRIPT.md) using no real customer
-data, no production secrets, and no live provider calls. All telemetry is
+data, no production secrets, and no live provider calls.
+
+## Implementation (from Phase 2)
+
+The seed data is defined in `src/data/seed` and loaded by the shared routine in
+`src/server/modules/demo/seed-runner.ts`, used by both the CLI (`npm run seed`,
+requires DATABASE_URL) and the guarded `POST /api/demo/reset` endpoint. The
+routine is idempotent: it clears known demo rows before inserting. It seeds the
+organization, users, environments, model providers and models, prompts and
+versions, agents and versions, deployments, evaluations, approvals, incidents,
+cost records, audit events, and outbox events. Seed integrity is verified by
+`src/test/seed-data.test.ts`. All telemetry is
 simulated.
 
 ## Goals
@@ -15,13 +26,13 @@ simulated.
 
 One demo organization with users covering each role.
 
-| Role | Name | Purpose in demo |
-| --- | --- | --- |
-| Administrator | Dana Reyes | Platform owner. |
-| Platform Engineer | Alex Kim | Creates agents, requests deployments, performs rollback. |
-| Reviewer | Priya Shah | Approves or rejects the pending request. |
-| Auditor | Sam Cole | Reviews the audit trail. |
-| Executive | Morgan Lee | Views cost and risk summaries. |
+| Role              | Name       | Purpose in demo                                          |
+| ----------------- | ---------- | -------------------------------------------------------- |
+| Administrator     | Dana Reyes | Platform owner.                                          |
+| Platform Engineer | Alex Kim   | Creates agents, requests deployments, performs rollback. |
+| Reviewer          | Priya Shah | Approves or rejects the pending request.                 |
+| Auditor           | Sam Cole   | Reviews the audit trail.                                 |
+| Executive         | Morgan Lee | Views cost and risk summaries.                           |
 
 ## Models
 

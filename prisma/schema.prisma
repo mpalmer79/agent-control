@@ -1,13 +1,15 @@
-// Agent Control: Prisma schema foundation.
+// Agent Control: Prisma schema.
 //
-// This schema models the core entities described in DATA_MODEL.md at a
-// foundation level. It is intentionally scoped to support future phases
-// without overbuilding fields that later phases will introduce.
+// Models the core entities from DATA_MODEL.md. PostgreSQL is the source of
+// truth. Every tenant-owned model carries an organizationId and is scoped by
+// organization. Audit events, cost records, and outbox events are append-only
+// by convention enforced in the service layer.
 //
-// PostgreSQL is the source of truth. Every tenant-owned model carries an
-// organizationId and is scoped by organization. Audit events, cost records,
-// and outbox events are append-only by convention enforced in the service
-// layer (added in later phases).
+// Primary keys are UUIDs. Controlled status values use enums. JSON is used only
+// where flexibility is justified (config snapshots, prompt variables, audit
+// state snapshots, and event payloads). AuditEvent.action is a string because
+// audit action names follow the resource.action dot convention from
+// AUDIT_MODEL.md, which a database enum cannot represent.
 
 generator client {
   provider = "prisma-client-js"
@@ -21,12 +23,6 @@ datasource db {
 // ---------------------------------------------------------------------------
 // Enums
 // ---------------------------------------------------------------------------
-
-enum RiskLevel {
-  LOW
-  MEDIUM
-  HIGH
-}
 
 enum UserRole {
   ADMINISTRATOR
@@ -42,6 +38,12 @@ enum UserStatus {
   SUSPENDED
 }
 
+enum EnvironmentType {
+  DEVELOPMENT
+  STAGING
+  PRODUCTION
+}
+
 enum AgentStatus {
   DRAFT
   ACTIVE
@@ -49,10 +51,28 @@ enum AgentStatus {
   ARCHIVED
 }
 
-enum EnvironmentName {
-  DEVELOPMENT
-  STAGING
-  PRODUCTION
+enum AgentRiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum PromptVersionStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  ARCHIVED
+}
+
+enum ModelProviderStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum ModelStatus {
+  ENABLED
+  DISABLED
+  DEPRECATED
 }
 
 enum DeploymentStatus {
@@ -92,7 +112,7 @@ enum IncidentStatus {
   RESOLVED
 }
 
-enum OutboxStatus {
+enum OutboxEventStatus {
   PENDING
   PUBLISHED
   FAILED
@@ -103,7 +123,7 @@ enum OutboxStatus {
 // ---------------------------------------------------------------------------
 
 model Organization {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   name      String
   slug      String   @unique
   createdAt DateTime @default(now())
@@ -121,7 +141,7 @@ model Organization {
 }
 
 model User {
-  id             String     @id @default(cuid())
+  id             String     @id @default(uuid())
   organizationId String
   email          String
   fullName       String
@@ -130,11 +150,11 @@ model User {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  ownedAgents       Agent[]      @relation("AgentOwner")
-  requestedApprovals Approval[]  @relation("ApprovalRequestedBy")
-  assignedApprovals  Approval[]  @relation("ApprovalAssignedTo")
+  ownedAgents        Agent[]      @relation("AgentOwner")
+  requestedApprovals Approval[]   @relation("ApprovalRequestedBy")
+  assignedApprovals  Approval[]   @relation("ApprovalAssignedTo")
   auditEvents        AuditEvent[]
 
   @@unique([organizationId, email])
@@ -142,12 +162,12 @@ model User {
 }
 
 model Environment {
-  id             String          @id @default(cuid())
+  id             String          @id @default(uuid())
   organizationId String
-  name           EnvironmentName
+  name           EnvironmentType
   description    String?
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, name])
   @@index([organizationId])
@@ -158,17 +178,17 @@ model Environment {
 // ---------------------------------------------------------------------------
 
 model Agent {
-  id             String      @id @default(cuid())
+  id             String         @id @default(uuid())
   organizationId String
   name           String
   description    String?
   ownerUserId    String
-  status         AgentStatus @default(DRAFT)
-  riskLevel      RiskLevel   @default(LOW)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  status         AgentStatus    @default(DRAFT)
+  riskLevel      AgentRiskLevel @default(LOW)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  organization Organization   @relation(fields: [organizationId], references: [id])
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   owner        User           @relation("AgentOwner", fields: [ownerUserId], references: [id])
   versions     AgentVersion[]
   deployments  Deployment[]
@@ -180,7 +200,7 @@ model Agent {
 }
 
 model AgentVersion {
-  id              String   @id @default(cuid())
+  id              String   @id @default(uuid())
   agentId         String
   version         String
   promptVersionId String?
@@ -189,7 +209,7 @@ model AgentVersion {
   createdBy       String
   createdAt       DateTime @default(now())
 
-  agent          Agent           @relation(fields: [agentId], references: [id])
+  agent          Agent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
   promptVersion  PromptVersion?  @relation(fields: [promptVersionId], references: [id])
   model          Model?          @relation(fields: [modelId], references: [id])
   deployments    Deployment[]
@@ -204,7 +224,7 @@ model AgentVersion {
 // ---------------------------------------------------------------------------
 
 model Prompt {
-  id             String   @id @default(cuid())
+  id             String   @id @default(uuid())
   organizationId String
   name           String
   description    String?
@@ -212,23 +232,24 @@ model Prompt {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  organization Organization    @relation(fields: [organizationId], references: [id])
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   versions     PromptVersion[]
 
   @@index([organizationId])
 }
 
 model PromptVersion {
-  id            String   @id @default(cuid())
+  id            String              @id @default(uuid())
   promptId      String
   version       String
+  status        PromptVersionStatus @default(DRAFT)
   templateText  String
   variablesJson Json?
   changeReason  String?
   createdBy     String
-  createdAt     DateTime @default(now())
+  createdAt     DateTime            @default(now())
 
-  prompt        Prompt         @relation(fields: [promptId], references: [id])
+  prompt        Prompt         @relation(fields: [promptId], references: [id], onDelete: Cascade)
   agentVersions AgentVersion[]
 
   @@unique([promptId, version])
@@ -240,26 +261,28 @@ model PromptVersion {
 // ---------------------------------------------------------------------------
 
 model ModelProvider {
-  id        String   @id @default(cuid())
-  key       String   @unique
+  id        String              @id @default(uuid())
+  key       String              @unique
   name      String
-  createdAt DateTime @default(now())
+  status    ModelProviderStatus @default(ACTIVE)
+  createdAt DateTime            @default(now())
 
   models Model[]
 }
 
 model Model {
-  id                   String    @id @default(cuid())
+  id                   String         @id @default(uuid())
   providerId           String
   modelKey             String
   displayName          String
   contextWindow        Int
   inputCostPerMillion  Float
   outputCostPerMillion Float
-  riskLevel            RiskLevel @default(MEDIUM)
-  enabledForProduction Boolean   @default(false)
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  riskLevel            AgentRiskLevel @default(MEDIUM)
+  status               ModelStatus    @default(ENABLED)
+  enabledForProduction Boolean        @default(false)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
 
   provider      ModelProvider  @relation(fields: [providerId], references: [id])
   agentVersions AgentVersion[]
@@ -273,10 +296,10 @@ model Model {
 // ---------------------------------------------------------------------------
 
 model Deployment {
-  id                     String           @id @default(cuid())
+  id                     String           @id @default(uuid())
   agentId                String
   agentVersionId         String
-  environment            EnvironmentName
+  environment            EnvironmentType
   status                 DeploymentStatus @default(REQUESTED)
   deployedBy             String
   approvedBy             String?
@@ -285,7 +308,7 @@ model Deployment {
   correlationId          String
   createdAt              DateTime         @default(now())
 
-  agent        Agent        @relation(fields: [agentId], references: [id])
+  agent        Agent        @relation(fields: [agentId], references: [id], onDelete: Cascade)
   agentVersion AgentVersion @relation(fields: [agentVersionId], references: [id])
 
   @@index([agentId])
@@ -297,7 +320,7 @@ model Deployment {
 // ---------------------------------------------------------------------------
 
 model Approval {
-  id             String         @id @default(cuid())
+  id             String         @id @default(uuid())
   organizationId String
   resourceType   String
   resourceId     String
@@ -309,7 +332,7 @@ model Approval {
   correlationId  String
   createdAt      DateTime       @default(now())
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   requester    User         @relation("ApprovalRequestedBy", fields: [requestedBy], references: [id])
   assignee     User?        @relation("ApprovalAssignedTo", fields: [assignedTo], references: [id])
 
@@ -321,7 +344,7 @@ model Approval {
 // ---------------------------------------------------------------------------
 
 model EvaluationRun {
-  id             String           @id @default(cuid())
+  id             String           @id @default(uuid())
   agentVersionId String
   suiteName      String
   status         EvaluationStatus @default(QUEUED)
@@ -332,7 +355,7 @@ model EvaluationRun {
   createdBy      String
   createdAt      DateTime         @default(now())
 
-  agentVersion AgentVersion @relation(fields: [agentVersionId], references: [id])
+  agentVersion AgentVersion @relation(fields: [agentVersionId], references: [id], onDelete: Cascade)
 
   @@index([agentVersionId])
 }
@@ -342,7 +365,7 @@ model EvaluationRun {
 // ---------------------------------------------------------------------------
 
 model Incident {
-  id             String           @id @default(cuid())
+  id             String           @id @default(uuid())
   organizationId String
   agentId        String?
   severity       IncidentSeverity
@@ -353,18 +376,18 @@ model Incident {
   createdAt      DateTime         @default(now())
   resolvedAt     DateTime?
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   agent        Agent?       @relation(fields: [agentId], references: [id])
 
   @@index([organizationId, status])
 }
 
 // ---------------------------------------------------------------------------
-// Costs
+// Costs (append-only)
 // ---------------------------------------------------------------------------
 
 model CostRecord {
-  id             String          @id @default(cuid())
+  id             String          @id @default(uuid())
   organizationId String
   agentId        String?
   modelId        String?
@@ -372,11 +395,11 @@ model CostRecord {
   inputTokens    Int
   outputTokens   Int
   estimatedCost  Float
-  environment    EnvironmentName
+  environment    EnvironmentType
   correlationId  String
   createdAt      DateTime        @default(now())
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   agent        Agent?       @relation(fields: [agentId], references: [id])
   model        Model?       @relation(fields: [modelId], references: [id])
 
@@ -389,7 +412,7 @@ model CostRecord {
 // ---------------------------------------------------------------------------
 
 model AuditEvent {
-  id                String   @id @default(cuid())
+  id                String   @id @default(uuid())
   organizationId    String
   actorUserId       String?
   action            String
@@ -400,7 +423,7 @@ model AuditEvent {
   correlationId     String
   createdAt         DateTime @default(now())
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   actor        User?        @relation(fields: [actorUserId], references: [id])
 
   @@index([organizationId, createdAt])
@@ -408,22 +431,22 @@ model AuditEvent {
 }
 
 // ---------------------------------------------------------------------------
-// Outbox (transactional event delivery)
+// Outbox (append-only, transactional event delivery)
 // ---------------------------------------------------------------------------
 
 model OutboxEvent {
-  id             String       @id @default(cuid())
+  id             String            @id @default(uuid())
   organizationId String
   eventType      String
   aggregateType  String
   aggregateId    String
   payloadJson    Json
   correlationId  String
-  status         OutboxStatus @default(PENDING)
-  occurredAt     DateTime     @default(now())
+  status         OutboxEventStatus @default(PENDING)
+  occurredAt     DateTime          @default(now())
   publishedAt    DateTime?
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([status, occurredAt])
 }

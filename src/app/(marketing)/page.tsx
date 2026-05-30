@@ -61,8 +61,8 @@ export default function MarketingPage() {
           </h1>
           <p className="max-w-2xl text-lg text-muted-foreground">
             {PRODUCT.name} is a control plane for managing, governing, and
-            observing production AI agents. It treats AI operations with the same
-            rigor expected of any other production-critical platform.
+            observing production AI agents. It treats AI operations with the
+            same rigor expected of any other production-critical platform.
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
             <Button asChild>

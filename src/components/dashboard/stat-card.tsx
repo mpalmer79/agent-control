@@ -27,7 +27,9 @@ export function StatCard({ metric }: { metric: MetricCard }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-1">
-        <p className={cn("text-2xl font-semibold", INTENT_ACCENT[metric.intent])}>
+        <p
+          className={cn("text-2xl font-semibold", INTENT_ACCENT[metric.intent])}
+        >
           {metric.value}
         </p>
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
