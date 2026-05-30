@@ -64,21 +64,26 @@ Status legend: [ ] not started, [~] in progress, [x] complete.
 - [x] Clerk principal groundwork (demo principal, no enforcement yet)
 - [x] Shared module components and demo-mode banner
 - [x] View builder, principal, metric card, and status helper tests
-- [ ] Write workflows (promote, rollback, approve, reject, edit): Phase 4
-- [ ] Database-backed assembly of rich aggregate views: Phase 4
 - [ ] Provider abstraction with simulated adapter: later phase
 
 ## Phase 4: Governance and Approvals
 
-- [ ] Risk classification and policy evaluation
-
-## Phase 4: Governance and Approvals
-
-- [ ] Risk classification and policy evaluation
-- [ ] Approval requests and role-based routing
-- [ ] Immutable approval decisions
-- [ ] Fail-closed enforcement for high-risk actions
-- [ ] RBAC for approval endpoints
+- [x] Principal role-to-permission model and authorization utilities
+- [x] RBAC enforced in the service layer (not only UI)
+- [x] Lightweight policy engine for promotion, rollback, and approval decisions
+- [x] Approve and reject approval workflows (immutable, reason required to reject)
+- [x] Double-decision prevention
+- [x] Deployment promotion, request-promotion, and rollback workflows
+- [x] Policy blocks prevent mutation and return typed blocked results
+- [x] Audit events for successful persisted workflow actions
+- [x] Outbox events for successful persisted workflow actions
+- [x] Demo-safe simulated mutations clearly labeled, no false evidence IDs
+- [x] Guarded mutation API endpoints with zod validation
+- [x] Workflow UI panels, confirmation dialog, and result states
+- [x] Permission, policy, workflow, validation, and UI tests
+- [ ] Clerk-backed role mapping (currently demo principal): future hardening
+- [ ] Database-backed assembly of rich aggregate views: future phase
+- [ ] Outbox publisher process: Phase 5 onward
 
 ## Phase 5: Observability and Incidents
 

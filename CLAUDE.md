@@ -74,8 +74,17 @@ reads arrive in later phases. The shell renders without Clerk keys or a database
 - UI view models: `src/types/views.ts`. Server components consume these, never raw Prisma models.
 - View service: `src/server/views/index.ts` returns `{ data, source }` via the `load()` fallback. Rich aggregate views are assembled by the seed-derived builders in `src/server/views/demo-views.ts`; database-backed assembly of these aggregates lands with the Phase 4 write workflows. Lean repository reads remain in `src/server/repositories`.
 - Server components read the correlation ID with `correlationIdFromHeaders()` (`src/server/request.ts`) and call the view service. The `DemoModeBanner` shows when seed-derived data is served.
-- Auth principal groundwork: `src/server/auth/principal.ts`. Phase 3 returns a demo principal and does not enforce roles. RBAC enforcement arrives in Phase 4.
-- Phase 3 is read-oriented. Do not add promote, rollback, approve, reject, or edit workflows until Phase 4.
+- Auth principal groundwork: `src/server/auth/principal.ts`.
+
+## Governance Workflows (from Phase 4)
+
+- Roles and permissions: `src/server/auth/principal.ts` (ROLE_PERMISSIONS) and `src/server/auth/permissions.ts`. Enforce permissions in the service layer with `requirePermission`, never only in the UI.
+- Policy engine: `src/server/modules/governance/policy-engine.ts` is pure (facts in, decision out). Facts are gathered in `src/server/workflows/facts.ts`.
+- Workflow services: approvals in `src/server/modules/governance/service.ts`, deployments in `src/server/modules/deployments/service.ts`. They resolve the principal, enforce permission, evaluate policy, and either block (no mutation), route to pending approval, persist with audit and outbox evidence, or return a simulated result when no database is configured.
+- Workflow result types: `src/types/workflows.ts`. API routes return these in the standard envelope and use 422 for blocked actions.
+- UI: client panels in `src/components/workflows` drive the mutation endpoints and render success, blocked, pending, simulated, and error states.
+- Blocked actions never mutate state and never create outbox events. Simulated results never claim persisted evidence IDs.
+- Do not add real AI runtime execution or a live outbox publisher yet.
 
 ## Architecture Rules
 

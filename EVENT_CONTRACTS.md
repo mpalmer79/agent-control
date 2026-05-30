@@ -5,6 +5,16 @@ Events align with ARCHITECTURE.md and SYSTEM_DESIGN.md section 7. Critical event
 are published through the outbox pattern and delivered at least once, so
 consumers must be idempotent.
 
+## Workflow Events (from Phase 4)
+
+Phase 4 workflow actions write pending outbox records (a publisher process
+arrives later). The event types written are: `ApprovalApproved`,
+`ApprovalRejected`, `DeploymentPromotionRequested`, `DeploymentPromoted`, and
+`DeploymentRolledBack`. Each is written in the same transaction as the business
+state change and the audit event, and carries the request correlation ID.
+Blocked actions do not write outbox events. These names extend the registered
+set below and follow the same envelope.
+
 ## Naming Rules
 
 - Event types use PascalCase.

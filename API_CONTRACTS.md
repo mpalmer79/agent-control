@@ -32,8 +32,16 @@ envelope and correlation ID: `GET /api/agents/[id]`, `GET /api/agents/[id]/versi
 `GET /api/evaluations/summary`, `GET /api/incidents/summary`, and
 `GET /api/audit-events/resource?resourceId=...`.
 
-All endpoints are read-only. Mutating resource endpoints (promote, rollback,
-approve, reject) and authorization enforcement arrive in Phase 4.
+Phase 4 added guarded mutation endpoints that return a typed workflow result
+(`src/types/workflows.ts`) in the standard envelope: `POST /api/approvals/[id]/approve`,
+`POST /api/approvals/[id]/reject` (reason required), `POST /api/deployments/request-promotion`,
+`POST /api/deployments/[id]/promote`, `POST /api/deployments/[id]/rollback`, and
+`GET /api/deployments/[id]/rollback-candidates`. These validate the body with
+zod, resolve the principal, enforce permission in the service layer, and return
+status 422 when policy blocks the action. A blocked action mutates nothing.
+Without a database the result is `simulated` and carries no persisted evidence
+IDs. Authorization is enforced via the role-to-permission model; full
+Clerk-backed role mapping is a future hardening step.
 
 ## Conventions
 

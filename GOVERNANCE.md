@@ -5,6 +5,34 @@ deployment restrictions for Agent Control. Governance aligns with
 ARCHITECTURE.md (Governance and Policy, Human Approval Framework) and
 SYSTEM_DESIGN.md section 4.7.
 
+## Implementation (from Phase 4)
+
+The role-to-permission model lives in `src/server/auth/principal.ts`, with
+enforcement utilities (`hasPermission`, `requirePermission`, `requireRole`,
+`assertSameOrganization`) in `src/server/auth/permissions.ts`. Permissions are
+enforced in the service layer, not only the UI. Roles map as follows:
+administrators perform all Phase 4 actions; platform engineers request, promote,
+and roll back; reviewers decide approvals; auditors and executives are
+read-only.
+
+The policy engine (`src/server/modules/governance/policy-engine.ts`) is pure: it
+takes gathered facts and returns a decision with `allowed`, `requiredApprovals`,
+`blockingIssues`, `warnings`, and `reasons`. Promotion to production blocks when
+the prompt version is not approved, the model is not production-enabled,
+evaluations are failing, or there is an open critical incident; it routes to a
+pending approval when no approval is recorded. Rollback blocks when the target
+is missing, belongs to another agent, is blocked, or has a failed critical
+evaluation. Approval decisions block when the request is missing or already
+decided, and rejection requires a reason.
+
+When a policy blocks an action, no state changes and no outbox event is created;
+the workflow returns a typed blocked result with the reasons. Successful
+persisted actions write an append-only audit event and a pending outbox event in
+a transaction. Without a database, workflows return clearly labeled simulated
+results and claim no persisted evidence. Workflow endpoints are listed in
+API_CONTRACTS.md; audit and event names are in AUDIT_MODEL.md and
+EVENT_CONTRACTS.md.
+
 ## Goals
 
 - Enforce human oversight for high-risk AI actions by default.

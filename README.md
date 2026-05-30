@@ -112,15 +112,27 @@ See [MASSIVE_ACTION_PLAN.md](./MASSIVE_ACTION_PLAN.md) for the full plan.
 
 ## Status
 
-Phase 3 complete: read-oriented control plane modules. On top of the Phase 1
-shell and Phase 2 persistence foundation, the repository now has browsable
-Agents, Prompts, Deployments, Governance, Evaluations, Observability, Incidents,
-and Audit modules, with detail pages for agents, prompts, and deployments, and a
-dashboard that links to module summaries. A read-oriented view service produces
-rich UI view models, serving seed-derived demo data with a clear demo banner
-when no database is configured. Clerk principal groundwork is in place without
-enforcing roles yet. Write workflows (promote, rollback, approve, reject) arrive
-in Phase 4. The shell still renders without a database or Clerk keys.
+Phase 4 complete: governance and approval workflows. On top of the read-oriented
+modules, the platform now supports governed, auditable actions: approve and
+reject approvals, request promotion, promote, and roll back deployments. A
+role-to-permission model is enforced in the service layer, a lightweight policy
+engine gates each action (production promotion requires approval, passing
+evaluations, an enabled model, an approved prompt, and no open critical
+incident), and successful persisted actions write append-only audit and outbox
+events. Without a database the workflows return clearly labeled simulated
+results and never claim persisted evidence. The shell still renders without a
+database or Clerk keys; full Clerk-backed role mapping remains a future
+hardening step.
+
+### Workflow API Endpoints (Phase 4)
+
+Guarded mutations returning the standard envelope with a correlation ID and a
+typed workflow result:
+
+- `POST /api/approvals/[id]/approve`, `POST /api/approvals/[id]/reject`.
+- `POST /api/deployments/request-promotion`.
+- `POST /api/deployments/[id]/promote`, `POST /api/deployments/[id]/rollback`.
+- `GET /api/deployments/[id]/rollback-candidates`.
 
 ### Module and Foundation API Endpoints
 
