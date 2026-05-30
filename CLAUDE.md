@@ -46,6 +46,20 @@ Do not propose FastAPI or alternative backends for the MVP. Future service
 extraction is allowed once scale or team boundaries justify it, but the MVP
 architecture is Next.js with TypeScript, Prisma, and PostgreSQL.
 
+## Project Structure (from Phase 1)
+
+The application shell exists. Match the established layout when adding code.
+
+- Routes and layouts: `src/app` with route groups `(marketing)`, `(app)`, `(auth)`.
+- UI components: `src/components` (ui, layout, navigation, dashboard, shared, providers).
+- Domain modules: `src/server/modules/<domain>` with `index.ts` and `types.ts`. Keep modules isolated; communicate through service calls or events.
+- Shared types: `src/types`. Constants, config, mock data, prisma client, utils, validation: `src/lib`.
+- Prisma schema and seed: `prisma/schema.prisma` and `prisma/seed.ts`. Seed data: `src/data/seed`.
+- Tests: `src/test` using Vitest and React Testing Library.
+
+The MVP uses a mock data layer (`src/lib/mock`) for the shell. Database-backed
+reads arrive in later phases. The shell renders without Clerk keys or a database.
+
 ## Architecture Rules
 
 - Build as a modular monolith first. Do not extract services prematurely.

@@ -1,0 +1,66 @@
+// Seed model providers and models. Cost values are representative only.
+
+export const seedProviders = [
+  { key: "anthropic", name: "Anthropic" },
+  { key: "openai", name: "OpenAI" },
+  { key: "google", name: "Google" },
+  { key: "local", name: "Local" },
+] as const;
+
+export const seedModels = [
+  {
+    key: "claude-sonnet",
+    providerKey: "anthropic",
+    modelKey: "claude-sonnet",
+    displayName: "Claude Sonnet",
+    contextWindow: 200000,
+    inputCostPerMillion: 3,
+    outputCostPerMillion: 15,
+    riskLevel: "MEDIUM",
+    enabledForProduction: true,
+  },
+  {
+    key: "claude-opus",
+    providerKey: "anthropic",
+    modelKey: "claude-opus",
+    displayName: "Claude Opus",
+    contextWindow: 200000,
+    inputCostPerMillion: 15,
+    outputCostPerMillion: 75,
+    riskLevel: "MEDIUM",
+    enabledForProduction: true,
+  },
+  {
+    key: "gpt-class",
+    providerKey: "openai",
+    modelKey: "gpt-class",
+    displayName: "GPT Class Model",
+    contextWindow: 128000,
+    inputCostPerMillion: 5,
+    outputCostPerMillion: 15,
+    riskLevel: "MEDIUM",
+    enabledForProduction: true,
+  },
+  {
+    key: "gemini-class",
+    providerKey: "google",
+    modelKey: "gemini-class",
+    displayName: "Gemini Class Model",
+    contextWindow: 1000000,
+    inputCostPerMillion: 2,
+    outputCostPerMillion: 8,
+    riskLevel: "LOW",
+    enabledForProduction: false,
+  },
+  {
+    key: "local-eval",
+    providerKey: "local",
+    modelKey: "local-eval-model",
+    displayName: "Local Evaluation Model",
+    contextWindow: 32000,
+    inputCostPerMillion: 0,
+    outputCostPerMillion: 0,
+    riskLevel: "LOW",
+    enabledForProduction: false,
+  },
+] as const;

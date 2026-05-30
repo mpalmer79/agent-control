@@ -112,8 +112,52 @@ See [MASSIVE_ACTION_PLAN.md](./MASSIVE_ACTION_PLAN.md) for the full plan.
 
 ## Status
 
-Foundation stage. This repository currently contains documentation only. No
-application code has been written. Implementation begins at Phase 1.
+Phase 1 complete: repository shell and infrastructure. The repository now
+contains a runnable Next.js App Router application shell with the control plane
+layout, navigation, a dashboard built on a mock data layer, placeholder pages
+for each area, a Prisma schema foundation, a seed framework, domain module
+skeletons, and quality tooling. Feature behavior arrives in later phases.
+
+### Local Development
+
+Prerequisites: Node.js 20 or newer and npm. PostgreSQL is required only to run
+migrations and the seed; the static shell renders without a database or Clerk
+keys.
+
+```bash
+npm install
+cp .env.example .env        # fill in values as needed; safe to leave Clerk blank for the shell
+npm run prisma:generate     # generate the Prisma client
+npm run dev                 # start the app at http://localhost:3000
+```
+
+Quality checks:
+
+```bash
+npm run lint
+npm run typecheck
+npm run format:check
+npm run test
+npm run build
+```
+
+Database and seed (requires DATABASE_URL):
+
+```bash
+npm run prisma:migrate
+npm run seed
+```
+
+### Where Things Live
+
+- Application shell and routes: `src/app` (route groups `(marketing)`, `(app)`, `(auth)`).
+- UI components: `src/components` (ui, layout, navigation, dashboard, shared).
+- Domain modules: `src/server/modules` (one folder per domain).
+- Mock data layer: `src/lib/mock`.
+- Shared types, constants, config, validation: `src/types` and `src/lib`.
+- Prisma schema and seed: `prisma/schema.prisma` and `prisma/seed.ts`.
+- Seed data: `src/data/seed`.
+- Tests: `src/test`.
 
 ## License
 

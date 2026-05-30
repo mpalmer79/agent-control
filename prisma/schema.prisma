@@ -1,0 +1,429 @@
+// Agent Control: Prisma schema foundation.
+//
+// This schema models the core entities described in DATA_MODEL.md at a
+// foundation level. It is intentionally scoped to support future phases
+// without overbuilding fields that later phases will introduce.
+//
+// PostgreSQL is the source of truth. Every tenant-owned model carries an
+// organizationId and is scoped by organization. Audit events, cost records,
+// and outbox events are append-only by convention enforced in the service
+// layer (added in later phases).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum UserRole {
+  ADMINISTRATOR
+  PLATFORM_ENGINEER
+  REVIEWER
+  AUDITOR
+  EXECUTIVE
+}
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+}
+
+enum AgentStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum EnvironmentName {
+  DEVELOPMENT
+  STAGING
+  PRODUCTION
+}
+
+enum DeploymentStatus {
+  REQUESTED
+  PENDING_APPROVAL
+  ACTIVE
+  SUPERSEDED
+  ROLLED_BACK
+  BLOCKED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+  CANCELED
+}
+
+enum EvaluationStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum OutboxStatus {
+  PENDING
+  PUBLISHED
+  FAILED
+}
+
+// ---------------------------------------------------------------------------
+// Identity and tenancy
+// ---------------------------------------------------------------------------
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users        User[]
+  agents       Agent[]
+  prompts      Prompt[]
+  approvals    Approval[]
+  auditEvents  AuditEvent[]
+  costRecords  CostRecord[]
+  incidents    Incident[]
+  environments Environment[]
+  outboxEvents OutboxEvent[]
+}
+
+model User {
+  id             String     @id @default(cuid())
+  organizationId String
+  email          String
+  fullName       String
+  role           UserRole
+  status         UserStatus @default(ACTIVE)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  ownedAgents       Agent[]      @relation("AgentOwner")
+  requestedApprovals Approval[]  @relation("ApprovalRequestedBy")
+  assignedApprovals  Approval[]  @relation("ApprovalAssignedTo")
+  auditEvents        AuditEvent[]
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+}
+
+model Environment {
+  id             String          @id @default(cuid())
+  organizationId String
+  name           EnvironmentName
+  description    String?
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+// ---------------------------------------------------------------------------
+// Agents
+// ---------------------------------------------------------------------------
+
+model Agent {
+  id             String      @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  ownerUserId    String
+  status         AgentStatus @default(DRAFT)
+  riskLevel      RiskLevel   @default(LOW)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  organization Organization   @relation(fields: [organizationId], references: [id])
+  owner        User           @relation("AgentOwner", fields: [ownerUserId], references: [id])
+  versions     AgentVersion[]
+  deployments  Deployment[]
+  incidents    Incident[]
+  costRecords  CostRecord[]
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+}
+
+model AgentVersion {
+  id              String   @id @default(cuid())
+  agentId         String
+  version         String
+  promptVersionId String?
+  modelId         String?
+  configJson      Json?
+  createdBy       String
+  createdAt       DateTime @default(now())
+
+  agent          Agent           @relation(fields: [agentId], references: [id])
+  promptVersion  PromptVersion?  @relation(fields: [promptVersionId], references: [id])
+  model          Model?          @relation(fields: [modelId], references: [id])
+  deployments    Deployment[]
+  evaluationRuns EvaluationRun[]
+
+  @@unique([agentId, version])
+  @@index([agentId])
+}
+
+// ---------------------------------------------------------------------------
+// Prompts
+// ---------------------------------------------------------------------------
+
+model Prompt {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  createdBy      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id])
+  versions     PromptVersion[]
+
+  @@index([organizationId])
+}
+
+model PromptVersion {
+  id            String   @id @default(cuid())
+  promptId      String
+  version       String
+  templateText  String
+  variablesJson Json?
+  changeReason  String?
+  createdBy     String
+  createdAt     DateTime @default(now())
+
+  prompt        Prompt         @relation(fields: [promptId], references: [id])
+  agentVersions AgentVersion[]
+
+  @@unique([promptId, version])
+  @@index([promptId])
+}
+
+// ---------------------------------------------------------------------------
+// Models and providers
+// ---------------------------------------------------------------------------
+
+model ModelProvider {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  name      String
+  createdAt DateTime @default(now())
+
+  models Model[]
+}
+
+model Model {
+  id                   String    @id @default(cuid())
+  providerId           String
+  modelKey             String
+  displayName          String
+  contextWindow        Int
+  inputCostPerMillion  Float
+  outputCostPerMillion Float
+  riskLevel            RiskLevel @default(MEDIUM)
+  enabledForProduction Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  provider      ModelProvider  @relation(fields: [providerId], references: [id])
+  agentVersions AgentVersion[]
+  costRecords   CostRecord[]
+
+  @@unique([providerId, modelKey])
+}
+
+// ---------------------------------------------------------------------------
+// Deployments
+// ---------------------------------------------------------------------------
+
+model Deployment {
+  id                     String           @id @default(cuid())
+  agentId                String
+  agentVersionId         String
+  environment            EnvironmentName
+  status                 DeploymentStatus @default(REQUESTED)
+  deployedBy             String
+  approvedBy             String?
+  deployedAt             DateTime?
+  rollbackFromDeployment String?
+  correlationId          String
+  createdAt              DateTime         @default(now())
+
+  agent        Agent        @relation(fields: [agentId], references: [id])
+  agentVersion AgentVersion @relation(fields: [agentVersionId], references: [id])
+
+  @@index([agentId])
+  @@index([agentId, environment])
+}
+
+// ---------------------------------------------------------------------------
+// Governance
+// ---------------------------------------------------------------------------
+
+model Approval {
+  id             String         @id @default(cuid())
+  organizationId String
+  resourceType   String
+  resourceId     String
+  requestedBy    String
+  assignedTo     String?
+  status         ApprovalStatus @default(PENDING)
+  decisionReason String?
+  decidedAt      DateTime?
+  correlationId  String
+  createdAt      DateTime       @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  requester    User         @relation("ApprovalRequestedBy", fields: [requestedBy], references: [id])
+  assignee     User?        @relation("ApprovalAssignedTo", fields: [assignedTo], references: [id])
+
+  @@index([organizationId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Evaluations
+// ---------------------------------------------------------------------------
+
+model EvaluationRun {
+  id             String           @id @default(cuid())
+  agentVersionId String
+  suiteName      String
+  status         EvaluationStatus @default(QUEUED)
+  score          Float?
+  passed         Boolean?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdBy      String
+  createdAt      DateTime         @default(now())
+
+  agentVersion AgentVersion @relation(fields: [agentVersionId], references: [id])
+
+  @@index([agentVersionId])
+}
+
+// ---------------------------------------------------------------------------
+// Observability and incidents
+// ---------------------------------------------------------------------------
+
+model Incident {
+  id             String           @id @default(cuid())
+  organizationId String
+  agentId        String?
+  severity       IncidentSeverity
+  status         IncidentStatus   @default(OPEN)
+  title          String
+  description    String?
+  correlationId  String
+  createdAt      DateTime         @default(now())
+  resolvedAt     DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  agent        Agent?       @relation(fields: [agentId], references: [id])
+
+  @@index([organizationId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Costs
+// ---------------------------------------------------------------------------
+
+model CostRecord {
+  id             String          @id @default(cuid())
+  organizationId String
+  agentId        String?
+  modelId        String?
+  provider       String
+  inputTokens    Int
+  outputTokens   Int
+  estimatedCost  Float
+  environment    EnvironmentName
+  correlationId  String
+  createdAt      DateTime        @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  agent        Agent?       @relation(fields: [agentId], references: [id])
+  model        Model?       @relation(fields: [modelId], references: [id])
+
+  @@index([organizationId, createdAt])
+  @@index([agentId])
+}
+
+// ---------------------------------------------------------------------------
+// Audit (append-only)
+// ---------------------------------------------------------------------------
+
+model AuditEvent {
+  id                String   @id @default(cuid())
+  organizationId    String
+  actorUserId       String?
+  action            String
+  resourceType      String
+  resourceId        String
+  previousStateJson Json?
+  newStateJson      Json?
+  correlationId     String
+  createdAt         DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  actor        User?        @relation(fields: [actorUserId], references: [id])
+
+  @@index([organizationId, createdAt])
+  @@index([correlationId])
+}
+
+// ---------------------------------------------------------------------------
+// Outbox (transactional event delivery)
+// ---------------------------------------------------------------------------
+
+model OutboxEvent {
+  id             String       @id @default(cuid())
+  organizationId String
+  eventType      String
+  aggregateType  String
+  aggregateId    String
+  payloadJson    Json
+  correlationId  String
+  status         OutboxStatus @default(PENDING)
+  occurredAt     DateTime     @default(now())
+  publishedAt    DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([status, occurredAt])
+}
