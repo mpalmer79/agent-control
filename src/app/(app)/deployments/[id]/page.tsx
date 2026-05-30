@@ -26,8 +26,12 @@ import {
   evaluationPassIntent,
   evaluationPassLabel,
 } from "@/lib/constants/status";
+import { DetailCard as ActionCard } from "@/components/shared/detail-card";
+import { DeploymentActionPanel } from "@/components/workflows/deployment-action-panel";
+import { hasPermission } from "@/server/auth/permissions";
+import { getPrincipal } from "@/server/auth/principal";
 import { correlationIdFromHeaders } from "@/server/request";
-import { getDeploymentDetail } from "@/server/views";
+import { getDeploymentDetail, getRollbackCandidates } from "@/server/views";
 
 export const metadata: Metadata = { title: "Deployment detail" };
 
@@ -46,6 +50,16 @@ export default async function DeploymentDetailPage({
   if (!deployment) {
     notFound();
   }
+
+  const principal = await getPrincipal();
+  const canPromote = hasPermission(principal, "deployments:promote");
+  const canRollback = hasPermission(principal, "deployments:rollback");
+  const agentKey = id.split("-")[0] ?? "";
+  const { data: rollbackCandidates } = await getRollbackCandidates(
+    correlationId,
+    agentKey,
+  );
+  const rollbackTargetId = rollbackCandidates.find((c) => c !== id) ?? null;
 
   return (
     <>
@@ -180,6 +194,18 @@ export default async function DeploymentDetailPage({
         <AlertTitle>Rollback readiness</AlertTitle>
         <AlertDescription>{deployment.rollbackReadiness}</AlertDescription>
       </Alert>
+
+      <ActionCard
+        title="Actions"
+        description="Governed control plane actions. Production promotion is gated by policy and may require approval."
+      >
+        <DeploymentActionPanel
+          deploymentId={deployment.id}
+          canPromote={canPromote}
+          canRollback={canRollback}
+          rollbackTargetId={rollbackTargetId}
+        />
+      </ActionCard>
     </>
   );
 }

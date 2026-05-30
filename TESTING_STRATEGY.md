@@ -13,6 +13,17 @@ include implementation; tests are written during the implementation phases.
 
 ## Test Layers
 
+### Phase 4 Tests
+
+Phase 4 adds Vitest coverage for the role-to-permission checks and authorization
+utilities, the policy engine (promotion gates, rollback gates, and approval
+decision rules), the approval and deployment workflow services on the simulated
+path (approve, reject with required reason, double-decision prevention,
+promotion blocked by a failed evaluation, production promotion routed to pending
+approval, and rollback allowed), the workflow request validation schemas, and
+the workflow result alert component (success, simulated, and blocked rendering).
+These run without a database against the simulated workflow path.
+
 ### Phase 3 Tests
 
 Phase 3 adds Vitest coverage for the demo view builders (agent list and detail,

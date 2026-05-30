@@ -17,4 +17,24 @@ export const outboxRepository = {
       where: { organizationId, status: "PENDING" },
     });
   },
+
+  create(input: {
+    organizationId: string;
+    eventType: string;
+    aggregateType: string;
+    aggregateId: string;
+    payloadJson: object;
+    correlationId: string;
+  }) {
+    return prisma.outboxEvent.create({
+      data: {
+        organizationId: input.organizationId,
+        eventType: input.eventType,
+        aggregateType: input.aggregateType,
+        aggregateId: input.aggregateId,
+        payloadJson: input.payloadJson,
+        correlationId: input.correlationId,
+      },
+    });
+  },
 };

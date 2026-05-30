@@ -5,6 +5,19 @@ retention, export, and immutability expectations. Audit is the system of record.
 This aligns with ARCHITECTURE.md (Audit Architecture) and SYSTEM_DESIGN.md
 sections 4.11 and 11.4.
 
+## Workflow Audit Actions (from Phase 4)
+
+Successful persisted governance and deployment workflows write an append-only
+audit event via `auditRepository.create`, in the same transaction as the state
+change. The action names are: `approval.approved`, `approval.rejected`,
+`deployment.promotion_requested`, `deployment.promoted`, and
+`deployment.rolled_back`. Each event records organizationId, action,
+resourceType, resourceId, a previous and new state snapshot, and the request
+correlationId. Blocked actions are logged with their correlation ID and do not
+mutate state; persisting blocked-attempt audit evidence is available as a future
+enhancement. Without a database, workflows are simulated and write no audit
+events.
+
 ## Principles
 
 - Every significant action produces an audit event.

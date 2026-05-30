@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { PageHeader } from "@/components/shared/page-header";
 import { DemoModeBanner } from "@/components/shared/demo-mode-banner";
@@ -68,7 +69,8 @@ export default async function GovernancePage() {
         <AlertDescription>
           Production deployments must satisfy approved prompt and model gates,
           passing evaluations, no unresolved critical policy violations, and
-          required human approval. Approve and reject actions arrive in Phase 4.
+          required human approval. Open a pending approval to approve or reject
+          it; high-risk actions fail closed.
         </AlertDescription>
       </Alert>
 
@@ -113,7 +115,12 @@ export default async function GovernancePage() {
                   {approvals.map((a) => (
                     <TableRow key={a.id}>
                       <TableCell className="font-medium">
-                        {a.resourceLabel}
+                        <Link
+                          href={`/governance/approvals/${a.id}`}
+                          className="hover:underline"
+                        >
+                          {a.resourceLabel}
+                        </Link>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {a.requestedBy}

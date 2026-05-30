@@ -37,3 +37,29 @@ export type CreatePromptVersionInput = z.infer<
   typeof createPromptVersionSchema
 >;
 export type DeploymentRequestInput = z.infer<typeof deploymentRequestSchema>;
+
+// Phase 4 workflow request schemas.
+
+export const approveSchema = z.object({
+  reason: z.string().max(500).optional(),
+});
+
+export const rejectSchema = z.object({
+  reason: z
+    .string()
+    .min(1, "A reason is required to reject a request.")
+    .max(500),
+});
+
+export const requestPromotionSchema = z.object({
+  deploymentId: z.string().min(1),
+});
+
+export const rollbackSchema = z.object({
+  targetDeploymentId: z.string().min(1),
+});
+
+export type ApproveInput = z.infer<typeof approveSchema>;
+export type RejectInput = z.infer<typeof rejectSchema>;
+export type RequestPromotionInput = z.infer<typeof requestPromotionSchema>;
+export type RollbackInput = z.infer<typeof rollbackSchema>;

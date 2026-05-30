@@ -4,6 +4,17 @@ Security assumptions and expectations for Agent Control: authentication,
 authorization, secrets management, tenant isolation, and audit integrity. This
 aligns with ARCHITECTURE.md (Security) and SYSTEM_DESIGN.md sections 10 and 11.
 
+## Authorization Enforcement (from Phase 4)
+
+Authorization uses a role-to-permission model (`src/server/auth/principal.ts`)
+enforced in the service layer (`src/server/auth/permissions.ts`), not only in
+the UI. Every governed workflow calls `requirePermission` before evaluating
+policy or mutating state, and forbidden access returns a typed ForbiddenError
+mapped to a 403 without leaking internals. Cross-tenant access fails closed via
+`assertSameOrganization`. The current principal is a demo principal;
+Clerk-backed session-to-principal mapping (resolving the real organization and
+role) is the remaining hardening step before handling real data.
+
 This document describes the security model. It is not a vulnerability disclosure
 policy. For the MVP, the platform handles no real customer data and no production
 secrets.

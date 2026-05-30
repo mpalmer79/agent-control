@@ -81,9 +81,14 @@ export function getDeploymentDetail(
 
 export function getRollbackCandidates(
   correlationId: string,
-): Promise<Loaded<DeploymentListItem[]>> {
+  agentKey?: string,
+): Promise<Loaded<string[]>> {
   return view(correlationId, () =>
-    views.buildDeploymentList().filter((d) => d.isRollbackCandidate),
+    views
+      .buildDeploymentList()
+      .filter((d) => d.isRollbackCandidate)
+      .filter((d) => (agentKey ? d.id.startsWith(`${agentKey}-`) : true))
+      .map((d) => d.id),
   );
 }
 
@@ -98,6 +103,16 @@ export function getApprovalSummary(
   correlationId: string,
 ): Promise<Loaded<ApprovalSummaryView>> {
   return view(correlationId, () => views.buildApprovalSummary());
+}
+
+export function getApprovalDetail(
+  correlationId: string,
+  id: string,
+): Promise<Loaded<ApprovalListItem | null>> {
+  return view(
+    correlationId,
+    () => views.buildApprovalList().find((a) => a.id === id) ?? null,
+  );
 }
 
 export function getPendingApprovals(
