@@ -11,6 +11,7 @@ export const ROUTES = {
   evaluations: "/evaluations",
   observability: "/observability",
   incidents: "/incidents",
+  traces: "/traces",
   audit: "/audit",
   settings: "/settings",
   signIn: "/sign-in",

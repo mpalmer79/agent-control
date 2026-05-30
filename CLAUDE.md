@@ -88,6 +88,14 @@ reads arrive in later phases. The shell renders without Clerk keys or a database
 - Blocked actions never mutate state and never create outbox events. Simulated results never claim persisted evidence IDs.
 - Do not add real AI runtime execution or a live outbox publisher yet.
 
+## Operational Evidence (from Phase 5)
+
+- Observability view models: `src/types/observability.ts`. Seed-derived builders: `src/server/views/observability-views.ts`, exposed through `src/server/views/index.ts` via the same `load()` fallback (so the demo banner stays honest).
+- Incident rules: `src/server/modules/incidents/rules.ts` are pure (facts in, candidates out) with severity scaling and dedupe. `src/server/modules/incidents/signals.ts` evaluates them; the only Phase 5 mutation endpoint is `POST /api/incidents/evaluate-signals`, which is permission-guarded and reports candidates without claiming persisted creation.
+- Traces: correlation-ID evidence joins audit, deployment, cost, incident, and outbox records into a time-ordered timeline (`/traces`, `/traces/[correlationId]`). The `corr_fraud_v3` trace is the demo spine.
+- Cost aggregation by agent, provider, and environment with budget signals; outbox visibility; evaluation trends by category.
+- All telemetry is demo-seeded with a simulated runtime. Do not claim live telemetry, persisted incident creation from signals, or an outbox publisher; those are future work.
+
 ## Architecture Rules
 
 - Build as a modular monolith first. Do not extract services prematurely.

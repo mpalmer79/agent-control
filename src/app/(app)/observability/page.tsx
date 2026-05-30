@@ -6,8 +6,13 @@ import { DemoModeBanner } from "@/components/shared/demo-mode-banner";
 import { DetailCard } from "@/components/shared/detail-card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { RiskBadge } from "@/components/shared/risk-badge";
+import { OperationalHealthCard } from "@/components/observability/operational-health-card";
+import { OutboxStatusBadge } from "@/components/observability/outbox-status-badge";
+import { CostSignalBadge } from "@/components/observability/cost-signal-badge";
+import { TraceLink } from "@/components/observability/trace-link";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -20,27 +25,47 @@ import {
   AGENT_STATUS_INTENT,
   AGENT_STATUS_LABELS,
 } from "@/lib/constants/status";
-import { formatCurrency, formatPercent } from "@/lib/utils";
+import { formatCurrency, formatDate, formatPercent } from "@/lib/utils";
 import { correlationIdFromHeaders } from "@/server/request";
-import { getObservability } from "@/server/views";
+import {
+  getCostDetail,
+  getEvaluationTrends,
+  getObservability,
+  getOperationalOverview,
+  getOutboxSummary,
+} from "@/server/views";
 
 export const metadata: Metadata = { title: "Observability" };
 
 export default async function ObservabilityPage() {
   const correlationId = await correlationIdFromHeaders();
-  const { data: view, source } = await getObservability(correlationId);
+  const [
+    { data: view, source },
+    { data: overview },
+    { data: outbox },
+    { data: cost },
+    { data: evaluations },
+  ] = await Promise.all([
+    getObservability(correlationId),
+    getOperationalOverview(correlationId),
+    getOutboxSummary(correlationId),
+    getCostDetail(correlationId),
+    getEvaluationTrends(correlationId),
+  ]);
+
+  const recentOutbox = outbox.recent[0];
 
   return (
     <>
       <PageHeader
         title="Observability"
-        description="Agent and provider health, latency, error, and cost summaries."
+        description="Operational health, agent and provider metrics, cost, evaluations, incidents, and evidence."
         actions={
           <Link
-            href="/incidents"
+            href="/traces"
             className="text-sm text-muted-foreground hover:underline"
           >
-            View incidents
+            Trace lookup
           </Link>
         }
       />
@@ -53,6 +78,34 @@ export default async function ObservabilityPage() {
           telemetry ingestion arrives in a later phase.
         </AlertDescription>
       </Alert>
+
+      <section className="grid gap-4 lg:grid-cols-3">
+        <OperationalHealthCard health={overview.health} />
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Deployment health
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            <p>{overview.deployments.active} active</p>
+            <p>{overview.deployments.pendingApproval} pending approval</p>
+            <p>{overview.deployments.rolledBack} rolled back</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Governance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            <p>{overview.governance.pendingApprovals} pending approvals</p>
+            <p>{overview.governance.approved} approved</p>
+            <p>{overview.governance.rejected} rejected</p>
+          </CardContent>
+        </Card>
+      </section>
 
       <DetailCard title="Agent health">
         <Table>
@@ -124,26 +177,82 @@ export default async function ObservabilityPage() {
 
         <DetailCard
           title="Cost summary"
-          description="Estimated spend across agents"
+          description="Estimated spend across agents (demo-seeded)"
         >
           <div className="space-y-3">
-            <p className="text-2xl font-semibold">
-              {formatCurrency(view.cost.estimatedTotal)}
-            </p>
+            <div className="flex items-baseline justify-between">
+              <p className="text-2xl font-semibold">
+                {formatCurrency(cost.estimatedMonthly)}
+              </p>
+              <span className="text-xs text-muted-foreground">
+                estimated monthly
+              </span>
+            </div>
             <ul className="space-y-2">
-              {view.cost.byAgent.map((entry) => (
+              {cost.budgetSignals.map((signal) => (
                 <li
-                  key={entry.agentName}
-                  className="flex items-center justify-between text-sm"
+                  key={signal.scope}
+                  className="flex items-center justify-between gap-3 text-sm"
                 >
-                  <span>{entry.agentName}</span>
-                  <span className="text-muted-foreground">
-                    {formatCurrency(entry.estimatedCost)}
+                  <span>{signal.scope}</span>
+                  <span className="flex items-center gap-2">
+                    <span className="text-muted-foreground">
+                      {formatCurrency(signal.estimatedCost)}
+                    </span>
+                    <CostSignalBadge level={signal.level} />
                   </span>
                 </li>
               ))}
             </ul>
+            <Link
+              href="/observability/costs"
+              className="text-sm text-primary hover:underline"
+            >
+              View cost detail
+            </Link>
           </div>
+        </DetailCard>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <DetailCard
+          title="Evaluation trends"
+          description="Pass rate by category"
+        >
+          <p className="mb-3 text-2xl font-semibold">
+            {formatPercent(evaluations.passRate)}
+          </p>
+          <ul className="space-y-2">
+            {evaluations.categories.map((cat) => (
+              <li
+                key={cat.category}
+                className="flex items-center justify-between text-sm capitalize"
+              >
+                <span>{cat.category}</span>
+                <span className="text-muted-foreground">
+                  {formatPercent(cat.passRate)} ({cat.passed}/
+                  {cat.passed + cat.failed})
+                </span>
+              </li>
+            ))}
+          </ul>
+        </DetailCard>
+
+        <DetailCard
+          title="Outbox"
+          description="Pending domain events awaiting publication"
+        >
+          <div className="mb-3 flex gap-4 text-sm">
+            <span>{outbox.pending} pending</span>
+            <span>{outbox.published} published</span>
+            <span>{outbox.failed} failed</span>
+          </div>
+          <Link
+            href="/observability/outbox"
+            className="text-sm text-primary hover:underline"
+          >
+            View outbox events
+          </Link>
         </DetailCard>
       </div>
 
@@ -160,15 +269,26 @@ export default async function ObservabilityPage() {
                 key={incident.id}
                 className="flex items-center justify-between gap-3 text-sm"
               >
-                <span>{incident.title}</span>
-                <span className="text-muted-foreground">
-                  {incident.agentName}
-                </span>
+                <Link
+                  href={`/incidents/${incident.id}`}
+                  className="hover:underline"
+                >
+                  {incident.title}
+                </Link>
+                <TraceLink correlationId={incident.correlationId} />
               </li>
             ))}
           </ul>
         )}
       </DetailCard>
+
+      {recentOutbox ? (
+        <p className="flex items-center gap-2 text-xs text-muted-foreground">
+          Recent outbox event: {recentOutbox.eventType}
+          <OutboxStatusBadge status={recentOutbox.status} /> at{" "}
+          {formatDate(recentOutbox.occurredAt)}
+        </p>
+      ) : null}
     </>
   );
 }

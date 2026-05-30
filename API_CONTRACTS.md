@@ -43,9 +43,20 @@ Without a database the result is `simulated` and carries no persisted evidence
 IDs. Authorization is enforced via the role-to-permission model; full
 Clerk-backed role mapping is a future hardening step.
 
+Phase 5 added read-only operational evidence endpoints (standard envelope and
+correlation ID): `GET /api/observability/overview`,
+`GET /api/observability/agent-health`, `GET /api/observability/provider-health`,
+`GET /api/observability/outbox`, `GET /api/traces`,
+`GET /api/traces/[correlationId]`, `GET /api/incidents/[id]`,
+`GET /api/costs/summary`, `GET /api/costs/by-agent`,
+`GET /api/costs/by-provider`, `GET /api/costs/by-environment`,
+`GET /api/evaluations/trends`, and
+`GET /api/audit-events/correlation/[correlationId]`. The only Phase 5 mutation
+is `POST /api/incidents/evaluate-signals`, which is permission-guarded, reports
+incident candidates, and never claims persisted creation it did not perform.
+
 ## Conventions
 
-- Base path: /api.
 - Format: JSON request and response bodies.
 - Authentication: bearer token; see SECURITY.md.
 - Tenant scope: the organization is resolved from the authenticated principal; all reads and writes are scoped by organization_id.

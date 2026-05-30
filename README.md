@@ -112,17 +112,23 @@ See [MASSIVE_ACTION_PLAN.md](./MASSIVE_ACTION_PLAN.md) for the full plan.
 
 ## Status
 
-Phase 4 complete: governance and approval workflows. On top of the read-oriented
-modules, the platform now supports governed, auditable actions: approve and
-reject approvals, request promotion, promote, and roll back deployments. A
-role-to-permission model is enforced in the service layer, a lightweight policy
-engine gates each action (production promotion requires approval, passing
-evaluations, an enabled model, an approved prompt, and no open critical
-incident), and successful persisted actions write append-only audit and outbox
-events. Without a database the workflows return clearly labeled simulated
-results and never claim persisted evidence. The shell still renders without a
-database or Clerk keys; full Clerk-backed role mapping remains a future
-hardening step.
+Phase 5 complete: observability and operational evidence. On top of the governed
+workflows, the platform now explains what happened, how serious it is, what it
+costs, and what evidence proves it: an operational health score, agent and
+provider health, cost aggregation by agent, provider, and environment with
+budget signals, evaluation trends by category, a pure incident rule engine (cost
+spike, error rate, evaluation failure, outbox backlog) with incident detail and
+recommended actions, correlation-ID trace lookup joining audit, deployment,
+cost, incident, and outbox evidence, and outbox visibility. All telemetry is
+demo-seeded with a simulated runtime. The earlier phases are preserved: the
+governed workflows remain transactional, and the shell still renders without a
+database or Clerk keys.
+
+Earlier: Phase 4 added governed, auditable workflows (approve, reject, request
+promotion, promote, roll back) with service-layer RBAC, a policy engine, and
+transactional audit and outbox evidence. Full Clerk-backed role mapping, real
+telemetry ingestion, persisted incident creation from signals, and an outbox
+publisher remain future work.
 
 ### Workflow API Endpoints (Phase 4)
 

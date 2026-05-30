@@ -8,6 +8,7 @@ import {
   Activity,
   TriangleAlert,
   ScrollText,
+  Workflow,
   Settings,
 } from "lucide-react";
 
@@ -69,6 +70,12 @@ export const NAV_ITEMS: NavItem[] = [
     href: ROUTES.audit,
     icon: ScrollText,
     description: "Append-only history of significant actions.",
+  },
+  {
+    label: "Traces",
+    href: ROUTES.traces,
+    icon: Workflow,
+    description: "Correlation-ID evidence across the platform.",
   },
   {
     label: "Settings",
