@@ -10,11 +10,11 @@ secrets.
 
 ## Authentication Assumptions
 
-- Authentication uses OAuth 2.0 or OpenID Connect.
-- Candidate providers: Auth0, Clerk, Azure AD, Google Workspace.
-- The API gateway enforces authentication on every request and rejects unauthenticated requests with 401.
-- The MVP may use a simplified provider configuration; full enterprise SSO is out of MVP scope.
-- Tokens are bearer tokens validated at the gateway; the authenticated principal resolves the organization and role.
+- The MVP uses Clerk for authentication. This decision is locked (see DECISIONS.md ADR 0013).
+- Clerk provides organization and user identity; the authenticated principal resolves the organization and role used for tenant scoping and role-based access control.
+- The application enforces authentication on every request and rejects unauthenticated requests with 401.
+- Full enterprise SSO is out of MVP scope. Alternative providers (Auth0, Azure AD, Google Workspace) remain documented as future options only.
+- Clerk keys are supplied through environment variables and never committed (see .env.example).
 
 ## Authorization Assumptions
 
@@ -32,7 +32,7 @@ secrets.
 ## Secrets Management
 
 - Secrets never belong in source code, configuration files committed to the repository, or database rows.
-- MVP: secrets are provided through platform environment variables (for example, Railway variables). See .env.example for the contract using safe placeholders only.
+- MVP: secrets are provided through platform environment variables (Vercel for the application, Railway for the database, and Clerk keys). See .env.example for the contract using safe placeholders only.
 - Production: secrets are managed through a cloud secret manager or Kubernetes secrets.
 - The repository ignores .env files (except .env.example) via .gitignore.
 - No real provider keys are committed or used in the public demo; real provider calls require a protected admin mode with operator-supplied credentials.

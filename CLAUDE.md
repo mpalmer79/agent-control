@@ -10,6 +10,42 @@ Agent Control is an enterprise control plane for production AI agents. It is not
 a chatbot, an AI wrapper, or a generic dashboard. Keep that framing in all code,
 comments, and documentation.
 
+## Mandatory Reading
+
+Before creating any routes, layouts, dashboards, navigation, services, or data
+models, you must read all three of the following files:
+
+- ARCHITECTURE.md
+- SYSTEM_DESIGN.md
+- UI_ARCHITECTURE.md
+
+These files are not optional and may not be bypassed. ARCHITECTURE.md and
+SYSTEM_DESIGN.md are the source of truth for the system; UI_ARCHITECTURE.md is
+the source of truth for navigation and information architecture. When this file
+disagrees with those documents, those documents win.
+
+## Product Naming
+
+- Use Agent Control as the public product name everywhere: code, comments, documentation, and UI copy.
+- Treat AI Deployment Command Center as the original concept name only. Do not use it as the public product name.
+- Keep terminology consistent across all files.
+
+## Technology Stack (Locked for MVP)
+
+The MVP stack is locked. Do not introduce alternatives or parallel backend paths.
+
+- Next.js App Router
+- TypeScript
+- Prisma
+- PostgreSQL
+- Tailwind CSS
+- shadcn/ui
+- Clerk for authentication
+
+Do not propose FastAPI or alternative backends for the MVP. Future service
+extraction is allowed once scale or team boundaries justify it, but the MVP
+architecture is Next.js with TypeScript, Prisma, and PostgreSQL.
+
 ## Architecture Rules
 
 - Build as a modular monolith first. Do not extract services prematurely.
@@ -45,6 +81,15 @@ comments, and documentation.
 Do not use em dashes anywhere in this repository. Replace them with commas,
 periods, colons, semicolons, or parentheses. This applies to documentation,
 code comments, commit messages, and pull request text.
+
+## Governance Requirements
+
+- High-risk and medium-risk production actions fail closed when a governance or evaluation check cannot complete.
+- A production deployment must satisfy all quality gates: approved agent version, approved prompt version, approved and production-enabled model, passing evaluations, no unresolved critical policy violations, and required human approval.
+- Approval decisions are immutable; a wrong decision is corrected with a new corrective action, never an edit.
+- A requester cannot approve their own approval request.
+- Every governance action writes an append-only audit event and emits a domain event through the outbox.
+- See GOVERNANCE.md for risk levels, approval rules, and enforcement details.
 
 ## Testing Requirements
 

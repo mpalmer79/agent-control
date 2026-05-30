@@ -68,3 +68,31 @@ ADR status values: Accepted, Superseded, Deprecated.
 - Context: When governance or evaluation checks cannot complete, allowing high-risk actions to proceed would defeat the platform purpose.
 - Decision: High-risk deployments fail closed when required checks or approvals are unavailable. Low-risk runtime calls may degrade gracefully with delayed telemetry.
 - Consequences: Safety is preserved under partial failure. Operators may see blocked high-risk actions during outages, which is the intended behavior.
+
+## ADR 0010: Next.js App Router for the MVP
+
+- Status: Accepted
+- Context: The MVP needs one framework that serves the control-plane UI and the API surface with minimal operational overhead, fast delivery, and a clean path to a modular monolith. The architecture documents offer a Next.js option and a separate FastAPI option.
+- Decision: Build the MVP on Next.js with the App Router. The frontend renders server-provided state, and API routes back the documented endpoints. The FastAPI option is not pursued for the MVP.
+- Consequences: A single deployable application, server components for data-heavy screens, and shared TypeScript types across UI and API. Module boundaries must be enforced in code organization since one process hosts all domains. Service extraction remains possible later.
+
+## ADR 0011: TypeScript Across the Stack
+
+- Status: Accepted
+- Context: The MVP shares models and contracts between the UI and the API. Type drift between layers is a common source of defects.
+- Decision: Use TypeScript for all application code, with shared types for API request and response shapes and event envelopes.
+- Consequences: Compile-time safety and shared contracts reduce integration bugs. Contract tests still verify runtime shapes (see TESTING_STRATEGY.md). Requires disciplined type definitions at module boundaries.
+
+## ADR 0012: Prisma as the ORM and Migration Tool
+
+- Status: Accepted
+- Context: The platform needs a typed data access layer over PostgreSQL, reliable migrations, and a schema that is easy to review in a portfolio context. PostgreSQL remains the source of truth (ADR 0002).
+- Decision: Use Prisma for schema definition, migrations, and typed data access. Tenant scoping by organization_id is enforced at the data access layer. The outbox row is written in the same transaction as the business record.
+- Consequences: Strong typing from schema to query and straightforward migrations. The team must guard against N+1 access patterns and ensure every tenant-owned query is organization-scoped. Raw SQL is available for cases Prisma does not express well.
+
+## ADR 0013: Clerk for Authentication
+
+- Status: Accepted
+- Context: The MVP needs authentication that integrates cleanly with Next.js, supports organizations and roles, and avoids building identity infrastructure for a portfolio project. ARCHITECTURE.md lists several candidate providers.
+- Decision: Use Clerk for authentication in the MVP. The authenticated principal resolves the organization and role used for tenant scoping and role-based access control. Real provider keys are supplied through environment variables and never committed.
+- Consequences: Fast, secure authentication with organization support and minimal custom code. The platform depends on a third-party identity provider for the MVP. Alternative providers (Auth0, Azure AD, Google Workspace) remain documented as future options but are not used now.
