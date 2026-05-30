@@ -1,10 +1,12 @@
 # System_Design.md
 
-# AI Deployment Command Center
+# Agent Control
+
+Agent Control began as the AI Deployment Command Center concept, but Agent Control is the public product name.
 
 ## Purpose
 
-This document describes the technical system design for the AI Deployment Command Center.
+This document describes the technical system design for Agent Control.
 
 The goal is to define service boundaries, data flow, event contracts, storage strategy, failure handling, scalability constraints, and operational behavior for a production-grade AI operations platform.
 
@@ -12,7 +14,7 @@ This system is designed to manage AI agents, prompts, model providers, deploymen
 
 ## 1. System Overview
 
-The AI Deployment Command Center is a control plane for enterprise AI systems.
+Agent Control is a control plane for enterprise AI systems.
 
 It does not replace model providers or application-specific AI workflows. Instead, it manages the operational lifecycle around them.
 
@@ -1278,7 +1280,7 @@ This project should demonstrate:
 
 ## 22. Final Design Position
 
-The AI Deployment Command Center should be built as a serious AI operations platform, not as another AI chatbot dashboard.
+Agent Control should be built as a serious AI operations platform, not as another AI chatbot dashboard.
 
 The strongest version of this project shows that production AI requires:
 
