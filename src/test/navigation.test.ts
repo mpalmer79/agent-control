@@ -15,6 +15,7 @@ describe("primary navigation", () => {
       "Observability",
       "Incidents",
       "Audit",
+      "Traces",
       "Settings",
     ]);
   });

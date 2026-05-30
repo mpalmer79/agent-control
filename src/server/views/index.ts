@@ -11,6 +11,7 @@
 
 import { load, type Loaded } from "@/server/data-source";
 import * as views from "@/server/views/demo-views";
+import * as obs from "@/server/views/observability-views";
 import type {
   AgentDetailView,
   AgentListItem,
@@ -203,4 +204,40 @@ export function getObservability(
   correlationId: string,
 ): Promise<Loaded<ObservabilityView>> {
   return view(correlationId, () => views.buildObservability());
+}
+
+// ---------------------------------------------------------------------------
+// Phase 5: operational evidence
+// ---------------------------------------------------------------------------
+
+export function getOperationalOverview(correlationId: string) {
+  return view(correlationId, () => obs.buildOperationalOverview());
+}
+
+export function getCostDetail(correlationId: string) {
+  return view(correlationId, () => obs.buildCostDetail());
+}
+
+export function getEvaluationTrends(correlationId: string) {
+  return view(correlationId, () => obs.buildEvaluationTrends());
+}
+
+export function getOutboxSummary(correlationId: string) {
+  return view(correlationId, () => obs.buildOutboxSummary());
+}
+
+export function getTraceDetail(correlationId: string, traceId: string) {
+  return view(correlationId, () => obs.buildTraceDetail(traceId));
+}
+
+export function getTraceList(correlationId: string) {
+  return view(correlationId, () => obs.buildTraceList());
+}
+
+export function getIncidentDetail(correlationId: string, id: string) {
+  return view(correlationId, () => obs.buildIncidentDetail(id));
+}
+
+export function getIncidentCandidates(correlationId: string) {
+  return view(correlationId, () => obs.buildIncidentCandidates());
 }

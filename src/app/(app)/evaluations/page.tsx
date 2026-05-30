@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { PageHeader } from "@/components/shared/page-header";
 import { DemoModeBanner } from "@/components/shared/demo-mode-banner";
+import { DetailCard } from "@/components/shared/detail-card";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { TraceLink } from "@/components/observability/trace-link";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,16 +25,22 @@ import {
 } from "@/lib/constants/status";
 import { formatPercent } from "@/lib/utils";
 import { correlationIdFromHeaders } from "@/server/request";
-import { getEvaluationSummary, listEvaluations } from "@/server/views";
+import {
+  getEvaluationSummary,
+  getEvaluationTrends,
+  listEvaluations,
+} from "@/server/views";
 
 export const metadata: Metadata = { title: "Evaluations" };
 
 export default async function EvaluationsPage() {
   const correlationId = await correlationIdFromHeaders();
-  const [{ data: summary, source }, { data: evaluations }] = await Promise.all([
-    getEvaluationSummary(correlationId),
-    listEvaluations(correlationId),
-  ]);
+  const [{ data: summary, source }, { data: evaluations }, { data: trends }] =
+    await Promise.all([
+      getEvaluationSummary(correlationId),
+      listEvaluations(correlationId),
+      getEvaluationTrends(correlationId),
+    ]);
 
   const cards = [
     { label: "Pass rate", value: formatPercent(summary.passRate) },
@@ -62,6 +71,34 @@ export default async function EvaluationsPage() {
           </Card>
         ))}
       </section>
+
+      <DetailCard
+        title="Category breakdown"
+        description="Pass rate by evaluation category"
+      >
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Category</TableHead>
+              <TableHead>Passed</TableHead>
+              <TableHead>Failed</TableHead>
+              <TableHead>Pass rate</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {trends.categories.map((cat) => (
+              <TableRow key={cat.category}>
+                <TableCell className="font-medium capitalize">
+                  {cat.category}
+                </TableCell>
+                <TableCell>{cat.passed}</TableCell>
+                <TableCell>{cat.failed}</TableCell>
+                <TableCell>{formatPercent(cat.passRate)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </DetailCard>
 
       {evaluations.length === 0 ? (
         <EmptyState title="No evaluation runs" />
@@ -117,6 +154,19 @@ export default async function EvaluationsPage() {
           </CardContent>
         </Card>
       )}
+
+      <p className="text-xs text-muted-foreground">
+        Failed evaluations that created incidents are linked from the incident
+        detail. See the Fraud Triage trace:{" "}
+        <TraceLink correlationId="corr_fraud_v3" />.
+      </p>
+
+      <Link
+        href="/observability"
+        className="text-sm text-primary hover:underline"
+      >
+        View observability overview
+      </Link>
     </>
   );
 }

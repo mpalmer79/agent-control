@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { PageHeader } from "@/components/shared/page-header";
 import { DemoModeBanner } from "@/components/shared/demo-mode-banner";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { CorrelationId } from "@/components/shared/correlation-id";
+import { TraceLink } from "@/components/observability/trace-link";
 import { EmptyState } from "@/components/shared/empty-state";
 import { DetailCard } from "@/components/shared/detail-card";
 import {
@@ -35,7 +36,11 @@ export default async function IncidentsPage() {
       ) : (
         <div className="space-y-4">
           {incidents.map((incident) => (
-            <DetailCard key={incident.id} title={incident.title}>
+            <DetailCard
+              key={incident.id}
+              title={incident.title}
+              description={`Severity ${incident.severity}`}
+            >
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge
@@ -53,16 +58,23 @@ export default async function IncidentsPage() {
                 {incident.description ? (
                   <p className="text-sm">{incident.description}</p>
                 ) : null}
-                <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                   <span>Created {formatDate(incident.createdAt)}</span>
                   {incident.resolvedAt ? (
                     <span>Resolved {formatDate(incident.resolvedAt)}</span>
                   ) : (
                     <span>Unresolved</span>
                   )}
-                  <span>
-                    Correlation <CorrelationId value={incident.correlationId} />
+                  <span className="flex items-center gap-1">
+                    Correlation{" "}
+                    <TraceLink correlationId={incident.correlationId} />
                   </span>
+                  <Link
+                    href={`/incidents/${incident.id}`}
+                    className="text-primary hover:underline"
+                  >
+                    View detail
+                  </Link>
                 </div>
               </div>
             </DetailCard>

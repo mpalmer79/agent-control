@@ -100,13 +100,21 @@ Status legend: [ ] not started, [~] in progress, [x] complete.
 
 ## Phase 5: Observability and Incidents
 
-- [ ] Minimum metric set collection
-- [ ] Evaluation framework across categories
-- [ ] Incident creation on cost spike and error rate
-- [ ] Correlation-ID trace lookup
-- [ ] Cost aggregation and budget signals
-
-## Phase 6: Demo Polish and Deployment
+- [x] Minimum operational metric set (agent, provider, deployment, governance, cost, incident)
+- [x] Operational overview with a health score
+- [x] Evaluation framework across categories with trend view
+- [x] Pure incident rule engine (cost spike, error rate, evaluation failure, outbox backlog) with dedupe
+- [x] Incident signal evaluation endpoint (guarded, candidate-reporting)
+- [x] Incident detail with triggering signal, evidence, and recommended action
+- [x] Correlation-ID trace lookup (list and detail) joining audit, deployment, cost, incident, and outbox evidence
+- [x] Outbox visibility (summary and event list)
+- [x] Cost aggregation by agent, provider, and environment with budget signals
+- [x] Dashboard upgraded to operational evidence and the reviewer walkthrough
+- [x] Phase 5 read-only API endpoints and one guarded signal evaluation endpoint
+- [x] Incident rule, observability view, trace, and cost tests
+- [ ] Real telemetry ingestion from external systems: future phase
+- [ ] Persisted incident creation from signals: future hardening pass
+- [ ] Outbox publisher to external systems: future phase
 
 - [ ] Complete seeded demo environment
 - [ ] Verified end-to-end demo flow

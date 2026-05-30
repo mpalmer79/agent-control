@@ -7,6 +7,19 @@ operational thinking: control, visibility, governance, audit, and rollback.
 Total time: about five minutes. Each step lists what to show and the point it
 makes.
 
+## Operational Evidence Walkthrough (from Phase 5)
+
+The strongest path through the platform follows the evidence:
+
+1. Open the Dashboard. Note the operational health score, the attention banner, and the top risk agent (Fraud Triage Agent).
+2. Open Incidents, then the cost spike and elevated error rate incident. Read the triggering signal, related metrics, and recommended action.
+3. Follow the correlation ID from the incident to the trace (`/traces/corr_fraud_v3`). See audit, deployment, cost, and outbox evidence on one timeline.
+4. Open Evaluations. The Fraud Triage v3 safety evaluation failed and blocks production.
+5. Open Observability for agent and provider health, cost by agent and provider, budget signals, and the outbox summary.
+6. Return to the Fraud Triage deployment detail and roll back to the prior stable version.
+
+This shows how Agent Control explains what happened, how serious it is, what it costs, and what evidence proves it.
+
 ## Before You Start
 
 - Ensure the seeded demo environment is loaded.
