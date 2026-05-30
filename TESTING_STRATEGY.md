@@ -13,6 +13,13 @@ include implementation; tests are written during the implementation phases.
 
 ## Test Layers
 
+### Tooling (from Phase 1)
+
+The configured test stack is Vitest with React Testing Library and
+@testing-library/jest-dom, in a jsdom environment. Tests live in `src/test` and
+run with `npm run test`. Phase 1 ships baseline tests for product constants,
+navigation configuration, the mock data shapes, and a dashboard component render.
+
 ### Unit Testing
 
 Scope: pure business rules in isolation.

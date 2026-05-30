@@ -17,12 +17,22 @@ Status legend: [ ] not started, [~] in progress, [x] complete.
 
 ## Phase 1: Repository Shell and Infrastructure
 
-- [ ] Next.js App Router skeleton with TypeScript, Prisma, Tailwind, shadcn/ui
-- [ ] Clerk authentication with organization and role resolution
-- [ ] Local PostgreSQL and environment config
-- [ ] Request concerns: correlation IDs, validation, structured logs
-- [ ] CI pipeline: lint, type check, test, build
-- [ ] Health check endpoint
+- [x] Next.js App Router skeleton with TypeScript, Prisma, Tailwind, shadcn/ui
+- [x] Clerk-ready authentication structure (passthrough when keys absent)
+- [x] Environment config that does not crash without optional variables
+- [x] Application shell: sidebar, header, environment and demo indicators
+- [x] Route group structure with dashboard and placeholder pages
+- [x] Prisma schema foundation for core entities and outbox
+- [x] Seed framework and demo seed data aligned with SEED_DATA_PLAN.md
+- [x] Mock data layer for the shell
+- [x] Domain module skeletons under src/server/modules
+- [x] Shared types, constants, and validation schemas
+- [x] Error, loading, and not-found states
+- [x] Quality tooling: lint, typecheck, format, test scripts
+- [x] Vitest test foundation with baseline tests
+- [ ] Correlation IDs and structured logging in request path (Phase 2)
+- [ ] CI pipeline wired in the repository (Phase 2)
+- [ ] Health check endpoint (Phase 2)
 
 ## Phase 2: Core Data Model
 
