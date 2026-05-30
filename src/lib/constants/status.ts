@@ -2,7 +2,10 @@ import type {
   AgentStatus,
   ApprovalStatus,
   DeploymentStatus,
+  EvaluationStatus,
   IncidentSeverity,
+  IncidentStatus,
+  PromptVersionStatus,
   RiskLevel,
 } from "@/types/domain";
 
@@ -90,3 +93,61 @@ export const INCIDENT_SEVERITY_INTENT: Record<IncidentSeverity, StatusIntent> =
     high: "destructive",
     critical: "destructive",
   };
+
+export const INCIDENT_STATUS_LABELS: Record<IncidentStatus, string> = {
+  open: "Open",
+  acknowledged: "Acknowledged",
+  resolved: "Resolved",
+};
+
+export const INCIDENT_STATUS_INTENT: Record<IncidentStatus, StatusIntent> = {
+  open: "destructive",
+  acknowledged: "warning",
+  resolved: "success",
+};
+
+export const EVALUATION_STATUS_LABELS: Record<EvaluationStatus, string> = {
+  queued: "Queued",
+  running: "Running",
+  completed: "Completed",
+  failed: "Failed",
+};
+
+export const EVALUATION_STATUS_INTENT: Record<EvaluationStatus, StatusIntent> =
+  {
+    queued: "muted",
+    running: "default",
+    completed: "success",
+    failed: "destructive",
+  };
+
+export const PROMPT_VERSION_STATUS_LABELS: Record<PromptVersionStatus, string> =
+  {
+    draft: "Draft",
+    in_review: "In review",
+    approved: "Approved",
+    archived: "Archived",
+  };
+
+export const PROMPT_VERSION_STATUS_INTENT: Record<
+  PromptVersionStatus,
+  StatusIntent
+> = {
+  draft: "muted",
+  in_review: "warning",
+  approved: "success",
+  archived: "default",
+};
+
+// Intent for a pass/fail evaluation result.
+export function evaluationPassIntent(passed: boolean | null): StatusIntent {
+  if (passed === true) return "success";
+  if (passed === false) return "destructive";
+  return "muted";
+}
+
+export function evaluationPassLabel(passed: boolean | null): string {
+  if (passed === true) return "Passed";
+  if (passed === false) return "Failed";
+  return "Pending";
+}

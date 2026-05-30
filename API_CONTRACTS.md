@@ -19,12 +19,21 @@ a consistent envelope (see `src/lib/api/responses.ts`):
 
 Errors use the matching shape with `success: false` and `error.code`. Every
 response sets the `x-correlation-id` header. Endpoints serve database data when
-DATABASE_URL is configured and seed-derived mock data otherwise. Implemented
-endpoints: `GET /api/health`, `GET /api/demo/status`, `POST /api/demo/reset`
-(guarded), `GET /api/agents`, `GET /api/prompts`, `GET /api/deployments`,
-`GET /api/approvals`, `GET /api/evaluations`, `GET /api/incidents`,
-`GET /api/audit-events`, and `GET /api/metrics/summary`. Mutating resource
-endpoints and authorization enforcement arrive in later phases.
+DATABASE_URL is configured and seed-derived demo data otherwise.
+
+Phase 2 implemented: `GET /api/health`, `GET /api/demo/status`,
+`POST /api/demo/reset` (guarded), and list reads for the core resources.
+
+Phase 3 added read-only detail and summary endpoints, all using the same
+envelope and correlation ID: `GET /api/agents/[id]`, `GET /api/agents/[id]/versions`,
+`GET /api/agents/[id]/deployments`, `GET /api/agents/[id]/incidents`,
+`GET /api/prompts/[id]`, `GET /api/prompts/[id]/versions`, `GET /api/models`,
+`GET /api/deployments/[id]`, `GET /api/approvals/summary`,
+`GET /api/evaluations/summary`, `GET /api/incidents/summary`, and
+`GET /api/audit-events/resource?resourceId=...`.
+
+All endpoints are read-only. Mutating resource endpoints (promote, rollback,
+approve, reject) and authorization enforcement arrive in Phase 4.
 
 ## Conventions
 

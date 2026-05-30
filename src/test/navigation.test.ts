@@ -4,14 +4,16 @@ import { NAV_ITEMS } from "@/lib/mock/navigation";
 import { ROUTES } from "@/lib/constants/routes";
 
 describe("primary navigation", () => {
-  it("includes the eight primary areas in order", () => {
+  it("includes the primary areas in order", () => {
     expect(NAV_ITEMS.map((item) => item.label)).toEqual([
       "Dashboard",
       "Agents",
       "Prompts",
       "Deployments",
       "Governance",
+      "Evaluations",
       "Observability",
+      "Incidents",
       "Audit",
       "Settings",
     ]);

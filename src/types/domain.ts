@@ -27,6 +27,12 @@ export type ApprovalStatus =
 
 export type EvaluationStatus = "queued" | "running" | "completed" | "failed";
 
+export type PromptVersionStatus =
+  | "draft"
+  | "in_review"
+  | "approved"
+  | "archived";
+
 export type IncidentSeverity = "low" | "medium" | "high" | "critical";
 
 export type IncidentStatus = "open" | "acknowledged" | "resolved";
