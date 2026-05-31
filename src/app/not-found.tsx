@@ -11,9 +11,14 @@ export default function NotFound() {
       <p className="max-w-md text-sm text-muted-foreground">
         The page you are looking for does not exist or has moved.
       </p>
-      <Button asChild>
-        <Link href={ROUTES.dashboard}>Go to dashboard</Link>
-      </Button>
+      <div className="flex gap-2">
+        <Button asChild>
+          <Link href={ROUTES.dashboard}>Go to dashboard</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href={ROUTES.walkthrough}>Start the walkthrough</Link>
+        </Button>
+      </div>
     </div>
   );
 }

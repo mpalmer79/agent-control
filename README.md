@@ -89,30 +89,56 @@ The MVP stack is locked (see [DECISIONS.md](./DECISIONS.md)):
 | [DEPLOYMENT.md](./DEPLOYMENT.md)                     | MVP and future production deployment.                      |
 | [SECURITY.md](./SECURITY.md)                         | Auth, tenancy, secrets, and audit integrity.               |
 | [CONTRIBUTING.md](./CONTRIBUTING.md)                 | Branching, commits, and review expectations.               |
+| [REVIEWER_GUIDE.md](./REVIEWER_GUIDE.md)             | Reviewer path and what to look for in the code.            |
+| [ARCHITECTURE_MAP.md](./ARCHITECTURE_MAP.md)         | Code-level request flow and layer boundaries.              |
 
 ## Reviewer Walkthrough
 
 A reviewer can understand the platform in under five minutes:
 
 1. Skim this README for the problem and capabilities.
-2. Read [ARCHITECTURE.md](./ARCHITECTURE.md) and [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md) for the engineering story.
-3. Follow [DEMO_SCRIPT.md](./DEMO_SCRIPT.md) to experience agent overview, deployment history, a failed evaluation, an approval workflow, the audit trail, an incident, and a rollback.
+2. Open the in-app walkthrough at `/walkthrough` (Start here in the sidebar), or read [REVIEWER_GUIDE.md](./REVIEWER_GUIDE.md).
+3. Follow the demo spine: dashboard, the Fraud Triage Agent, its failed deployment, the incident, and the `corr_fraud_v3` trace that joins all the evidence. See [DEMO_SCRIPT.md](./DEMO_SCRIPT.md) for the scripted version.
 
 The seeded demo (see [SEED_DATA_PLAN.md](./SEED_DATA_PLAN.md)) ships a realistic
 environment so the story works without real customer data or live provider calls.
 
+For the code-level flow, see [ARCHITECTURE_MAP.md](./ARCHITECTURE_MAP.md).
+
+## Screenshots
+
+Screenshots are not committed to keep the repository lean. To capture them, run
+the app locally and capture these pages into a local `docs/screenshots`
+directory:
+
+- Dashboard (`/dashboard`): operational health and the attention banner.
+- Incident detail (`/incidents/fraud-cost`): triggering signal and evidence.
+- Trace detail (`/traces/corr_fraud_v3`): the joined evidence timeline.
+- Deployment detail (`/deployments/fraud-v3-prod`): gates and rollback readiness.
+- Observability (`/observability`): health, cost, evaluations, and outbox.
+- Governance approval (`/governance`): the approval queue and policy notice.
+
 ## Future Roadmap Summary
 
-- Phase 1: single-agent management, prompt registry, deployment tracking, audit logging, seeded demo data.
-- Phase 2: multi-agent management, approval workflows, evaluation framework, rollback simulation.
-- Phase 3: cost intelligence, executive dashboards, risk scoring, incident management.
-- Phase 4: autonomous remediation, self-healing workflows, policy enforcement engine, provider failover.
+Future work, documented honestly and not presented as complete:
 
-See [MASSIVE_ACTION_PLAN.md](./MASSIVE_ACTION_PLAN.md) for the full plan.
+- Real telemetry ingestion from external systems (currently demo-seeded).
+- A background outbox publisher to external systems (events remain pending).
+- Persisted incident creation from signals (signals report candidates today).
+- Clerk-backed session-to-principal mapping (a demo principal is used today).
+
+See [MASSIVE_ACTION_PLAN.md](./MASSIVE_ACTION_PLAN.md) for the phase history.
 
 ## Status
 
-Phase 5 complete: observability and operational evidence. On top of the governed
+Phase 6 complete: the MVP is reviewable, deployment-ready, and portfolio-ready.
+A guided in-app walkthrough, a polished landing page, a real settings page, a
+reviewer guide, and an architecture map round out the operational evidence
+platform. This is a portfolio MVP: the runtime is simulated, all telemetry is
+demo-seeded, there are no live AI provider calls, no real customer data, and no
+secrets. The control plane renders without a database or Clerk keys.
+
+Phase 5 added observability and operational evidence. On top of the governed
 workflows, the platform now explains what happened, how serious it is, what it
 costs, and what evidence proves it: an operational health score, agent and
 provider health, cost aggregation by agent, provider, and environment with
@@ -157,18 +183,12 @@ otherwise.
 - `GET /api/audit-events`, `/api/audit-events/resource`.
 - `GET /api/metrics/summary`.
 
-### Foundation API Endpoints
-
-All endpoints return a consistent envelope and a correlation ID. They serve
-database data when DATABASE_URL is configured and seed-derived mock data
-otherwise.
-
-- `GET /api/health`: service, environment, version, and database status.
-- `GET /api/demo/status`: demo mode and reset eligibility.
-- `POST /api/demo/reset`: guarded demo dataset reset (development or demo mode).
-- `GET /api/agents`, `GET /api/prompts`, `GET /api/deployments`.
-- `GET /api/approvals`, `GET /api/evaluations`, `GET /api/incidents`.
-- `GET /api/audit-events`, `GET /api/metrics/summary`.
+Phase 5 added observability and evidence endpoints: `GET /api/observability/overview`,
+`/agent-health`, `/provider-health`, `/outbox`; `GET /api/traces`,
+`/api/traces/[correlationId]`; `GET /api/incidents/[id]`; `GET /api/costs/summary`,
+`/by-agent`, `/by-provider`, `/by-environment`; `GET /api/evaluations/trends`;
+`GET /api/audit-events/correlation/[correlationId]`; and the guarded
+`POST /api/incidents/evaluate-signals`.
 
 ### Local Development
 

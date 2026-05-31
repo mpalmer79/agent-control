@@ -90,7 +90,13 @@ export default async function DashboardPage() {
             <li>Review audit and outbox evidence.</li>
             <li>Return to the deployment and roll back.</li>
           </ol>
-          <div className="mt-3">
+          <div className="mt-3 flex items-center gap-3">
+            <Link
+              href={ROUTES.walkthrough}
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Start guided walkthrough
+            </Link>
             <TraceLink correlationId="corr_fraud_v3" />
           </div>
         </DetailCard>

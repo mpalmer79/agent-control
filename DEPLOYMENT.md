@@ -41,6 +41,25 @@ not_configured) and is suitable for a readiness check. The guarded
 `POST /api/demo/reset` endpoint reseeds the demo dataset and is disabled in
 production unless ALLOW_DEMO_RESET is set.
 
+### Environment Variables
+
+The application builds and renders without any of these set (the shell uses the
+seeded demo scenario). Configure them to enable persistence and authentication.
+Use safe placeholders only; never commit real values. See `.env.example`.
+
+| Variable                            | Purpose                                                             |
+| ----------------------------------- | ------------------------------------------------------------------- |
+| `DATABASE_URL`                      | PostgreSQL connection string. When unset, the app serves demo data. |
+| `NEXT_PUBLIC_DEMO_MODE`             | `true` to show demo banners and serve seeded data.                  |
+| `ALLOW_DEMO_RESET`                  | `true` to permit the guarded demo reset endpoint.                   |
+| `NEXT_PUBLIC_APP_VERSION`           | Version shown in Settings and the health endpoint.                  |
+| `NEXT_PUBLIC_ENVIRONMENT`           | Environment label shown in the header and Settings.                 |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key (optional).                                   |
+| `CLERK_SECRET_KEY`                  | Clerk secret key (optional).                                        |
+
+When `DATABASE_URL` is absent, the app degrades safely: reads serve seeded demo
+data and workflow mutations return clearly labeled simulated results.
+
 ### MVP Deployment Steps (high level)
 
 1. Provision PostgreSQL on Railway and capture the connection string as a platform variable.

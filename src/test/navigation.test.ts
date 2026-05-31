@@ -7,6 +7,7 @@ describe("primary navigation", () => {
   it("includes the primary areas in order", () => {
     expect(NAV_ITEMS.map((item) => item.label)).toEqual([
       "Dashboard",
+      "Start here",
       "Agents",
       "Prompts",
       "Deployments",
